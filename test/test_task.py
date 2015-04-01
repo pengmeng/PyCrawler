@@ -8,6 +8,8 @@ class TestTask(TestCase):
     def test_url(self):
         task = Task('sample-url', {'a': '1'})
         self.assertEqual('sample-url?a=1', task.url)
+        task = Task('sample-url', 1)
+        self.assertEqual('sample-url', task.url)
 
     def test_priority(self):
         self.assertNotEqual(0, Priority.Low)

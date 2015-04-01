@@ -28,11 +28,10 @@ class Task(object):
     def url(self):
         fullurl = self._url
         try:
-            fullurl = self._url + '?' + urllib.parse.urlencode(self._params)
+            fullurl += '?' + urllib.parse.urlencode(self._params)
         except TypeError as error:
-            pass
-        finally:
-            return fullurl
+            print(error)
+        return fullurl
 
     @property
     def timeout(self):
