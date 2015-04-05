@@ -42,6 +42,8 @@ class TempHandler(Handler):
                      'overwrite': True}
 
     def setargs(self, args):
+        if not isinstance(args, dict):
+            raise HandlerException('Args must be a dict')
         for key, value in args.iteritems():
             self.args[key] = value
         if self.args['path'].endswith('/'):

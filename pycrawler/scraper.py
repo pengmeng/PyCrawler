@@ -27,7 +27,7 @@ class Scraper(object):
         else:
             raise ScraperException('No scraper class named '+name)
 
-    def setargs(self, *args):
+    def setargs(self, args):
         raise NotImplementedError
 
     def fetch(self, *args):
@@ -43,6 +43,8 @@ class DefaultScraper(Scraper):
         self.args = {'debug': True}
 
     def setargs(self, args):
+        if not isinstance(args, dict):
+            raise ScraperException('Args must be a dict')
         for key, value in args.iteritems():
             self.args[key] = value
 
