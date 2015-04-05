@@ -1,0 +1,4 @@
+bitarray==0.8.1
+eventlet==0.17.2
+greenlet==0.4.5
+pybloom==1.1
