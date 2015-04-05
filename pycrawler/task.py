@@ -1,24 +1,14 @@
 __author__ = 'mengpeng'
-import urllib.parse
-from enum import Enum, unique
-
-
-@unique
-class Priority(Enum):
-    Low = 0
-    Normal = 1
-    High = 2
+import urllib
 
 
 class Task(object):
 
-    def __init__(self, url, params=None, timeout=5, priority=Priority.Normal):
+    def __init__(self, url, params=None, timeout=5):
         self._url = url
         self._params = params
         self._timeout = timeout
         self.timeout = timeout
-        self._priority = priority
-        self.priority = priority
 
     @property
     def url(self):
@@ -28,7 +18,7 @@ class Task(object):
     def url(self):
         fullurl = self._url
         try:
-            fullurl += '?' + urllib.parse.urlencode(self._params)
+            fullurl += '?' + urllib.urlencode(self._params)
         except TypeError as error:
             print(error)
         return fullurl
@@ -45,11 +35,3 @@ class Task(object):
             self._timeout = 10
         else:
             self._timeout = value
-
-    @property
-    def priority(self):
-        return self._priority
-
-    @priority.setter
-    def priority(self, value):
-        self._priority = value if isinstance(value, Priority) else Priority.Normal

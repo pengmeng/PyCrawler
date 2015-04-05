@@ -1,12 +1,17 @@
 __author__ = 'mengpeng'
 import os
-import urllib
+import eventlet
+from eventlet.green import urllib2
 from pycrawler.utils.tools import gethash
+from pycrawler.utils.tools import fullstamp
 from pycrawler.exception import ScraperException
 
 
 class Scraper(object):
     Dict = {}
+
+    def __init__(self, spider):
+        pass
 
     @staticmethod
     def register(cls):
@@ -23,50 +28,35 @@ class Scraper(object):
         else:
             raise ScraperException('No scraper class named '+name)
 
+    def fetch(self, *args):
+        raise ScraperException('Method must be override')
+
 
 @Scraper.register
-class DefaultScraper(object):
+class DefaultScraper(Scraper):
 
-    def __init__(self, debug=False, spidermode=False, tmpfile=True):
-        self.debug = debug
-        self.spidermode = spidermode
-        self.tmpfile = tmpfile
+    def __init__(self, spider):
+        super(DefaultScraper, self).__init__(spider)
+        self._spider = spider
+        self.args = {'debug': True,
+                     'tempFile': True,
+                     'tempPath': './tmp/'}
 
-    def exists(self, url):
-        filename = self._tmpfilename(url)
-        return os.path.exists(filename)
+    def fetchone(self, url):
+        try:
+            html = urllib2.urlopen(url)
+            if self.args['debug']:
+                print('{0} [{1}] Scraped: {2}'.format(fullstamp(), self._spider.name, url))
+            return html
+        except IOError as e:
+            raise ScraperException(e.message)
 
-    def fetchone(self, url, *handlers):
-        result = self.fetch([url], *handlers)
-        return result and result[gethash(url)]
-
-    def fetch(self, urllist, *handlers):
+    def fetch(self, urllist):
         results = {}
-        for url in iter(urllist):
-            if self.exists(url):
-                if not self.spidermode:
-                    html = self._loadfile(url)
-                    if self.debug:
-                        print('Load {0}.html from file.'.format(gethash(url)))
-                else:
-                    if self.debug:
-                        print('{0}.html already visited.'.format(gethash(url)))
-                    continue
-            else:
-                html = self._download(url)
-                if self.tmpfile:
-                    self._save2file(url, html)
-                    if self.debug:
-                        print('Download {0} and save as {1}.html'.format(url, gethash(url)))
-            result = []
-            for handler in iter(handlers):
-                result.append(handler.parse(html, url))
-            results[gethash(url)] = result
+        pool = eventlet.GreenPool()
+        for each in pool.imap(self.fetchone, urllist):
+            results[gethash(each.geturl())] = each
         return results
-
-    def _download(self, url):
-        html = urllib.urlopen(url).read()
-        return html
 
     def _loadfile(self, url):
         filename = self._tmpfilename(url)
@@ -81,6 +71,6 @@ class DefaultScraper(object):
             outfile.flush()
 
     def _tmpfilename(self, url):
-        if not os.path.exists('./tmp'):
-            os.mkdir('./tmp')
-        return './tmp/' + str(gethash(url)) + '.html'
+        if not os.path.exists(self.args['tempPath']):
+            os.mkdir(self.args['tempPath'])
+        return self.args['tempPath'] + str(gethash(url)) + '.html'
