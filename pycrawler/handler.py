@@ -1,5 +1,6 @@
 __author__ = 'mengpeng'
 import os
+from bs4 import BeautifulSoup
 from pycrawler.exception import HandlerException
 from pycrawler.utils.tools import gethash
 
@@ -25,7 +26,7 @@ class Handler(object):
         else:
             raise HandlerException('No Handler class named '+name)
 
-    def setargs(self, *args):
+    def setargs(self, args):
         raise NotImplementedError
 
     def parse(self, *args):
@@ -74,3 +75,26 @@ class TempHandler(Handler):
         if not os.path.exists(self.args['path']):
             os.makedirs(self.args['path'])
         return self.args['path'] + str(gethash(url)) + '.html'
+
+
+@Handler.register
+class LinkHandler(Handler):
+
+    def __init__(self, spider):
+        super(LinkHandler, self).__init__(spider)
+
+    def setargs(self, args):
+        pass
+
+    def parse(self, html, url):
+        bs = BeautifulSoup(html)
+        result = []
+        for link in bs.find_all('a', href=True):
+            href = link.get('href')
+            if href and self._satisfy(href):
+                result.append(str(href))
+        result = list(set(result))
+        return result
+
+    def _satisfy(self, href):
+        return href.startswith('http://')
