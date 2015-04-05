@@ -20,9 +20,8 @@ class TestDefaultScraper(TestCase):
     def test_fetchone(self):
         sp = SpiderTest('testspider')
         s = DefaultScraper(sp)
-        html = s.fetchone('http://www.google.com')
-        self.assertNotEqual(0, len(html.read()))
-        html.close()
+        _, html = s.fetchone('http://www.google.com')
+        self.assertNotEqual(0, len(html))
 
     def test_fetch(self):
         sp = SpiderTest('testspider')
@@ -32,8 +31,7 @@ class TestDefaultScraper(TestCase):
                            'http://www.zhihu.com'])
         self.assertEqual(3, len(results))
         for value in results.itervalues():
-            self.assertNotEqual(0, len(value.read()))
-            value.close()
+            self.assertNotEqual(0, len(value))
 
 
 class SpiderTest:
