@@ -32,4 +32,4 @@ class TestMongoPersist(TestCase):
         before = p.mongo.count()
         p.save(Bean(1, 'test', 'case body'))
         after = p.mongo.count()
-        self.assertEqual(1, after-before)
+        self.assertEqual(0, after-before)
