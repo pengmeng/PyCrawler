@@ -63,5 +63,5 @@ class DefaultScraper(Scraper):
         results = {}
         pool = eventlet.GreenPool()
         for url, html in pool.imap(self.fetchone, urllist):
-            results[gethash(url)] = html
+            results[url] = html
         return results

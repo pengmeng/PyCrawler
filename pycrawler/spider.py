@@ -5,10 +5,11 @@ from pycrawler.scraper import Scraper
 from pycrawler.frontier import Frontier
 from pycrawler.handler import Handler
 from pycrawler.persist import Persist
+from pycrawler.utils.tools import fullstamp
 
 
 class Spider(Thread):
-    def __init__(self, config):
+    def __init__(self, config, debug=True):
         super(Spider, self).__init__()
         self.name = ''
         self.config = config
@@ -16,11 +17,14 @@ class Spider(Thread):
         self.frontier = None
         self.handlers = []
         self.persist = None
+        self.debug = debug
         self._build(config)
 
     def _build(self, config):
         try:
             self.name = config['name']
+            self._debug('Start building...')
+            self.debug = config.get('debug', True)
             self.scraper = Scraper.getScraper(config['scraper']['name'])(self)
             if 'args' in config['scraper']:
                 self.scraper.setargs(config['scraper']['args'])
@@ -35,6 +39,7 @@ class Spider(Thread):
             self.persist = Persist.getPersist(config['persist']['name'])(self)
             if 'args' in config['persist']:
                 self.persist.setargs(config['persist']['args'])
+            self._debug('Build successful!')
         except KeyError as e:
             raise PyCrawlerException('Key \''+e.args[0]+'\' missing in config dict')
 
@@ -45,26 +50,65 @@ class Spider(Thread):
         self.frontier.add(task)
 
     def run(self):
+        self._debug('Start crawling...')
+        while self.frontier.hasnext():
+            urls = self.frontier.next(10)
+            results = self.scraper.fetch(urls)
+            for url, body in results.iteritems():
+                for handler in self.handlers:
+                    item = handler.parse(body, url)
+                    if item:
+                        self.persist.save(item)
+        self._debug('Crawling finished!')
+
+    def retire(self):
         pass
+
+    def _debug(self, s):
+        if self.debug:
+            print('{0} [{1}] {2}'.format(fullstamp(), self.name, s))
 
 
 class Driver(object):
-    def __init__(self, config):
+    def __init__(self, config, debug=True):
         self.name = ''
         self.config = config
-        self.spiders = []
+        self.spiders = {}
+        self.debug = debug
+        self._build(config)
 
     def _build(self, config):
-        pass
+        try:
+            self.name = config['name']
+            self._debug('Start building...')
+            self.debug = config.get('debug', True)
+            for each in config['spiders']:
+                spider = Spider(each)
+                self.addspider(spider)
+            self._debug('Build successful!')
+        except KeyError as e:
+            raise PyCrawlerException('Key \''+e.args[0]+'\' missing in config dict')
 
     def addspider(self, spider):
         if isinstance(spider, Spider):
-            self.spiders.append(spider)
+            self.spiders[spider.name] = spider
         else:
             raise PyCrawlerException('Only accept object of Spider')
 
+    def getspider(self, name):
+        try:
+            spider = self.spiders[name]
+            return spider
+        except KeyError:
+            raise PyCrawlerException('No spider named \''+name+'\'')
+
+    def addtask(self, spidername, task):
+        self.getspider(spidername).addtask(task)
+
     def start(self):
-        pass
+        self._debug('Start spiders...')
+        for spider in self.spiders.itervalues():
+            spider.start()
 
     def pause(self):
         pass
@@ -73,4 +117,11 @@ class Driver(object):
         pass
 
     def stop(self):
-        pass
+        self._debug('Stop spiders...')
+        for spider in self.spiders.itervalues():
+            spider.retire()
+        self._debug('Shut down.')
+
+    def _debug(self, s):
+        if self.debug:
+            print('{0} [{1}] {2}'.format(fullstamp(), self.name, s))
