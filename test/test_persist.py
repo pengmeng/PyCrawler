@@ -15,21 +15,19 @@ class TestMongoPersist(TestCase):
 
     def test_save(self):
         class Bean(Item):
-            def __init__(self, _id, name, body):
+            def __init__(self, name, body):
                 super(Bean, self).__init__()
-                self._id = _id
                 self.name = name
                 self.body = body
 
             def persistable(self):
-                d = {'_id': self._id,
-                     'name': self.name,
+                d = {'name': self.name,
                      'body': self.body}
                 return d
         p = MongoPersist(SpiderTest('testspider'))
         self.assertRaises(PersistException, p.save, 'failed')
         self.assertRaises(PersistException, p.save, [1])
         before = p.mongo.count()
-        p.save(Bean(1, 'test', 'case body'))
+        p.save(Bean('test', 'case body'))
         after = p.mongo.count()
-        self.assertEqual(0, after-before)
+        self.assertEqual(1, after-before)
