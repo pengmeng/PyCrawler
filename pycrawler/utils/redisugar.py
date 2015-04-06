@@ -13,5 +13,6 @@ class RediSugar(object):
         r = redis.Redis(connection_pool=RediSugar.Pool)
         try:
             r.ping()
+            return r
         except redis.ConnectionError:
             raise PyCrawlerException('Connect to redis server failed')
