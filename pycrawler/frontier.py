@@ -142,3 +142,9 @@ class BFSFrontier(Frontier):
                 if not re.match(each, item):
                     return False
         return True
+
+    def clean(self, *args):
+        if 'visited' in args:
+            self.redis.delete(self.visited)
+        if 'todo' in args:
+            self.redis.delete(self.todo)

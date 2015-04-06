@@ -29,7 +29,6 @@ class TestBFSFrontier(TestCase):
         self.assertTrue(url in f)
 
     def test_next(self):
-        f = Frontier.getFrontier('BFSFrontier')(SpiderTest('testspider'))
         pass
 
     def test__nextone(self):
@@ -62,3 +61,17 @@ class TestBFSFrontier(TestCase):
             '((http|ftp|https)://)(([a-zA-Z0-9\._-]+\.[a-zA-Z]{2,6})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\&%_\./-~-]*)?']}
         f.setargs(args)
         self.assertTrue(f.validate('http://www.baidu.com'))
+
+    def test_clean(self):
+        f = Frontier.getFrontier('BFSFrontier')(SpiderTest('testspider'))
+        f.clean('todo', 'visited')
+        self.assertEqual(0, len(f))
+        self.assertEqual(0, f.redis.llen(f.visited))
+        f.add(['url1', 'url2'])
+        self.assertEqual(2, len(f))
+        f.next(0)
+        self.assertEqual(2, f.redis.llen(f.visited))
+        f.add('should left')
+        f.clean('visited')
+        self.assertEqual(0, f.redis.llen(f.visited))
+        self.assertEqual(1, len(f))
