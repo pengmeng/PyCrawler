@@ -35,3 +35,20 @@ class TestSpider(TestCase):
 
     def test_retire(self):
         pass
+
+
+class TestDriver(TestCase):
+    def test__build(self):
+        pass
+
+    def test_addspider(self):
+        pass
+
+    def test_getspider(self):
+        pass
+
+    def test_addtask(self):
+        pass
+
+    def test_start(self):
+        pass
