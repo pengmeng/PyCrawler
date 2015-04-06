@@ -84,6 +84,7 @@ class LinkHandler(Handler):
 
     def __init__(self, spider):
         super(LinkHandler, self).__init__(spider)
+        self.spider = spider
 
     def setargs(self, args):
         pass
@@ -96,7 +97,7 @@ class LinkHandler(Handler):
             if href and self._satisfy(href):
                 result.append(str(href))
         result = list(set(result))
-        return result
+        self.spider.addtask(result)
 
     def _satisfy(self, href):
         return href.startswith('http://')
