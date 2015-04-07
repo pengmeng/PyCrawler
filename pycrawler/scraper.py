@@ -1,7 +1,8 @@
 __author__ = 'mengpeng'
 import eventlet
+import ast
+import urllib
 from eventlet.green import urllib2
-from pycrawler.utils.tools import gethash
 from pycrawler.utils.tools import fullstamp
 from pycrawler.exception import ScraperException
 
@@ -50,7 +51,8 @@ class DefaultScraper(Scraper):
 
     def fetchone(self, url):
         try:
-            res = urllib2.urlopen(url)
+            url, data = self._parseurl(url)
+            res = urllib2.urlopen(url=url, data=data)
             html = res.read()
             res.close()
             if self.args['debug']:
@@ -65,3 +67,28 @@ class DefaultScraper(Scraper):
         for url, html in pool.imap(self.fetchone, urllist):
             results[url] = html
         return results
+
+    def parseurl(self, url):
+        data = None
+        if '<args>' in url:
+            parts = url.splits('<args>')
+            if len(parts) != 2:
+                raise ScraperException('Wrong post url format: '+url)
+            url = parts[0]
+            try:
+                data = ast.literal_eval(parts[1])
+            except ValueError:
+                raise ScraperException('Wrong post args format: '+parts[1])
+        return url, data
+
+    def encodeurl(self, method, url, data=None):
+        if method == 'POST' and data:
+            url += '<args>' + data.__str__()
+            return url
+        elif method == 'GET' and data:
+            url += urllib.urlencode(data)
+            return url
+        elif not data:
+            return url
+        else:
+            raise ScraperException('Unsupported http method: '+method)
