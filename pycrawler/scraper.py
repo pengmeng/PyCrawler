@@ -51,7 +51,7 @@ class DefaultScraper(Scraper):
 
     def fetchone(self, url):
         try:
-            url, data = self._parseurl(url)
+            url, data = DefaultScraper.parseurl(url)
             res = urllib2.urlopen(url=url, data=data)
             html = res.read()
             res.close()
@@ -68,10 +68,11 @@ class DefaultScraper(Scraper):
             results[url] = html
         return results
 
-    def parseurl(self, url):
+    @staticmethod
+    def parseurl(url):
         data = None
         if '<args>' in url:
-            parts = url.splits('<args>')
+            parts = url.split('<args>')
             if len(parts) != 2:
                 raise ScraperException('Wrong post url format: '+url)
             url = parts[0]
@@ -81,7 +82,8 @@ class DefaultScraper(Scraper):
                 raise ScraperException('Wrong post args format: '+parts[1])
         return url, data
 
-    def encodeurl(self, method, url, data=None):
+    @staticmethod
+    def encodeurl(method, url, data=None):
         if method == 'POST' and data:
             url += '<args>' + data.__str__()
             return url

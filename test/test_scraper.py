@@ -33,6 +33,15 @@ class TestDefaultScraper(TestCase):
         for value in results.itervalues():
             self.assertNotEqual(0, len(value))
 
+    def test_url(self):
+        url = 'http://www.google.com'
+        data = {'a': 1, 'b': 2, 'c': 3}
+        full = DefaultScraper.encodeurl('POST', url, data)
+        self.assertTrue('<args>' in full)
+        url2, data2 = DefaultScraper.parseurl(full)
+        self.assertEqual(url, url2)
+        self.assertEqual(data, data2)
+
 
 class SpiderTest:
     def __init__(self, name):
