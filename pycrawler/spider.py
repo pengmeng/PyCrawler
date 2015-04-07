@@ -19,12 +19,14 @@ class Spider(Thread):
         self.persist = None
         self.debug = debug
         self._build(config)
+        self.keep = True
+        self.pause = False
 
     def _build(self, config):
         try:
             self.name = config['name']
-            self._debug('Start building...')
             self.debug = config.get('debug', True)
+            self._debug('Start building...')
             self.scraper = Scraper.getScraper(config['scraper']['name'])(self)
             if 'args' in config['scraper']:
                 self.scraper.setargs(config['scraper']['args'])
@@ -51,7 +53,7 @@ class Spider(Thread):
 
     def run(self):
         self._debug('Start crawling...')
-        while self.frontier.hasnext():
+        while self.frontier.hasnext() and self.keep:
             urls = self.frontier.next(10)
             results = self.scraper.fetch(urls)
             for url, body in results.iteritems():
@@ -59,10 +61,22 @@ class Spider(Thread):
                     item = handler.parse(body, url)
                     if item:
                         self.persist.save(item)
+            self._pause()
         self._debug('Crawling finished!')
 
     def retire(self):
-        pass
+        self.pause = False
+        self.keep = False
+        self._debug('Stopped by driver')
+        #self.frontier.save()
+
+    def _pause(self):
+        if self.pause:
+            self._debug('Paused by driver')
+            while True:
+                if not self.pause:
+                    self._debug('Resume...')
+                    break
 
     def _debug(self, s):
         if self.debug:
@@ -77,11 +91,14 @@ class Driver(object):
         self.debug = debug
         self._build(config)
 
+    def __len__(self):
+        return len(self.spiders)
+
     def _build(self, config):
         try:
             self.name = config['name']
-            self._debug('Start building...')
             self.debug = config.get('debug', True)
+            self._debug('Start building...')
             for each in config['spiders']:
                 spider = Spider(each)
                 self.addspider(spider)
@@ -103,7 +120,8 @@ class Driver(object):
             raise PyCrawlerException('No spider named \''+name+'\'')
 
     def addtask(self, spidername, task):
-        self.getspider(spidername).addtask(task)
+        spider = self.getspider(spidername)
+        spider.addtask(task)
 
     def start(self):
         self._debug('Start spiders...')
@@ -111,15 +129,20 @@ class Driver(object):
             spider.start()
 
     def pause(self):
-        pass
+        for spider in self.spiders.itervalues():
+            if spider.isAlive():
+                spider.pause = True
 
     def resume(self):
-        pass
+        for spider in self.spiders.itervalues():
+            if spider.isAlive():
+                spider.pause = False
 
     def stop(self):
         self._debug('Stop spiders...')
         for spider in self.spiders.itervalues():
-            spider.retire()
+            if spider.isAlive():
+                spider.retire()
         self._debug('Shut down.')
 
     def _debug(self, s):

@@ -50,22 +50,24 @@ class DefaultScraper(Scraper):
             self.args[key] = value
 
     def fetchone(self, url):
+        url, data = DefaultScraper.parseurl(url)
         try:
-            url, data = DefaultScraper.parseurl(url)
             res = urllib2.urlopen(url=url, data=data)
+        except (IOError, urllib2.HTTPError):
+            html = None
+        else:
             html = res.read()
             res.close()
-            if self.args['debug']:
-                print('{0} [{1}] Scraped: {2}'.format(fullstamp(), self._spider.name, url))
-            return url, html
-        except IOError as e:
-            raise ScraperException(e.message)
+        if self.args['debug']:
+            print('{0} [{1}] Scraped: {2}'.format(fullstamp(), self._spider.name, url))
+        return url, html
 
     def fetch(self, urllist):
         results = {}
         pool = eventlet.GreenPool()
         for url, html in pool.imap(self.fetchone, urllist):
-            results[url] = html
+            if html:
+                results[url] = html
         return results
 
     @staticmethod
