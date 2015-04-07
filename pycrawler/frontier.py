@@ -3,6 +3,7 @@ import re
 from pybloom import ScalableBloomFilter
 from pycrawler.exception import FrontierException
 from pycrawler.utils.redisugar import RediSugar
+from redis.exceptions import ResponseError
 
 
 class Frontier(object):
@@ -156,4 +157,7 @@ class BFSFrontier(Frontier):
             map(self.filter.add, self.redis.lrange(self.visited, 0, length))
 
     def save(self):
-        self.redis.bgsave()
+        try:
+            self.redis.bgsave()
+        except ResponseError:
+            pass
