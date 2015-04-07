@@ -51,6 +51,7 @@ class DefaultScraper(Scraper):
 
     def fetchone(self, url):
         url, data = DefaultScraper.parseurl(url)
+        data = urllib.urlencode(data) if data else data
         try:
             res = urllib2.urlopen(url=url, data=data)
         except (IOError, urllib2.HTTPError):
