@@ -75,3 +75,14 @@ class TestBFSFrontier(TestCase):
         f.clean('visited')
         self.assertEqual(0, f.redis.llen(f.visited))
         self.assertEqual(1, len(f))
+
+    def test__feedfilter(self):
+        f = Frontier.getFrontier('BFSFrontier')(SpiderTest('testspider'))
+        f.clean('todo', 'visited')
+        f.redis.rpush(f.visited, 'sample1')
+        f.redis.rpush(f.visited, 'sample2')
+        f.redis.rpush(f.visited, 'sample3')
+        f._feedfilter()
+        self.assertEqual(3, f.filter.count)
+        f.clean('todo', 'visited')
+        del f
