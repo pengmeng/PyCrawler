@@ -62,6 +62,7 @@ class BFSFrontier(Frontier):
         self.filter = ScalableBloomFilter(mode=ScalableBloomFilter.SMALL_SET_GROWTH)
         self.todo = spider.name + '-todo'
         self.visited = spider.name + '-visited'
+        self._feedfilter()
 
     def setargs(self, args):
         if not isinstance(args, dict):
@@ -148,3 +149,11 @@ class BFSFrontier(Frontier):
             self.redis.delete(self.visited)
         if 'todo' in args:
             self.redis.delete(self.todo)
+
+    def _feedfilter(self):
+        length = self.redis.llen(self.visited)
+        if length != 0:
+            map(self.filter.add, self.redis.lrange(self.visited, 0, length))
+
+    def save(self):
+        self.redis.bgsave()
