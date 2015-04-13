@@ -49,8 +49,8 @@ class DefaultScraper(Scraper):
         for key, value in args.iteritems():
             self.args[key] = value
 
-    def fetchone(self, url):
-        url, data = DefaultScraper.parseurl(url)
+    def fetchone(self, oriurl):
+        url, data = DefaultScraper.parseurl(oriurl)
         data = urllib.urlencode(data) if data else data
         try:
             res = urllib2.urlopen(url=url, data=data)
@@ -61,7 +61,7 @@ class DefaultScraper(Scraper):
             res.close()
         if self.args['debug']:
             print('{0} [{1}] Scraped: {2}'.format(fullstamp(), self._spider.name, url))
-        return url, html
+        return oriurl, html
 
     def fetch(self, urllist):
         results = {}
