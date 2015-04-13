@@ -5,3 +5,4 @@ greenlet==0.4.5
 pybloom==1.1
 pymongo==2.8
 redis==2.10.3
+Unidecode==0.4.17
