@@ -1,16 +1,20 @@
 __author__ = 'mengpeng'
 import re
+import time
+import math
+from unidecode import unidecode
 from pycrawler.persist import Item
 from pycrawler.handler import Handler
 from pycrawler.scraper import DefaultScraper
 from pycrawler.utils.tools import gethash
 from pycrawler.utils.tools import fullstamp
+from pycrawler.spider import Driver
+
 SETTINGS = {'name': 'WSJCrawler',
             'spiders': [
-                {'name': 'spider1',
+                {'name': 'WSJSpider',
                  'scraper': {'name': 'DefaultScraper'},
-                 'frontier': {'name': 'BFSFrontier',
-                              'args': {'rules': ['((http|ftp|https)://)(([a-zA-Z0-9\._-]+\.[a-zA-Z]{2,6})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\&%_\./-~-]*)?']}},
+                 'frontier': {'name': 'BFSFrontier'},
                  'handlers': [{'name': 'TempHandler',
                                'args': {'path': './tmp/'}},
                               {'name': 'WSJHandler'}],
@@ -34,9 +38,8 @@ def date2num(date):
     """Parse date format 01/17/14 into int 20140117"""
     parts = date.split('/')
     if len(parts) != 3:
-        return 0
-    else:
-        return ((2000 + int(parts[2])) * 100 + int(parts[0])) * 100 + int(parts[1])
+        parts = time.strftime("%m/%d/%y", time.localtime()).split('/')
+    return ((2000 + int(parts[2])) * 100 + int(parts[0])) * 100 + int(parts[1])
 
 
 class Phase(Item):
@@ -44,7 +47,7 @@ class Phase(Item):
         super(Phase, self).__init__()
         self.keyword = keyword
         self.total = total
-        self.pages = total / 15
+        self.pages = int(math.ceil(float(total)/15))
         self.start = date2num(start)
         self.end = date2num(end)
         self.year = self.start / 10000
@@ -69,10 +72,16 @@ class Article(Item):
         self._id = gethash(title + date)
         self.title = title
         self.url = url
-        self.date = date
+        self.date = self._cleandate(date)
         self.datenum = date2num(date)
         self.tag = tag
         self.keyword = keyword
+
+    def _cleandate(self, date):
+        if date.count('/') == 2:
+            return date
+        else:
+            return time.strftime("%m/%d/%y", time.localtime())
 
     def persistable(self):
         result = {'_id': self._id,
@@ -80,7 +89,8 @@ class Article(Item):
                   'url': self.url,
                   'date': self.date,
                   'datenum': self.datenum,
-                  'tag': self.tag}
+                  'tag': self.tag,
+                  'keyword': self.keyword}
         return result
 
 
@@ -115,7 +125,7 @@ class WSJHandler(Handler):
             phase = self._parsepage(page[0], url)
             result = [phase] if phase else []
             keyword = self._parsekeyword(url)
-            for i in range(len(titles)):
+            for i in xrange(len(titles)):
                 href, title = self._parsetitle(titles[i])
                 date = self._parsedate(dates[i])
                 tag = self._parsetag(tags[i])
@@ -134,9 +144,9 @@ class WSJHandler(Handler):
             total = int(page.split(' of ')[1])
             phase = Phase(data['fromDate'], data['toDate'], keyword, total)
             urls = []
-            for i in range(2, phase.pages+1):
+            for i in xrange(2, phase.pages+1):
                 data['page_no'] = i
-                urls.append(DefaultScraper.encodeurl(url, data))
+                urls.append(DefaultScraper.encodeurl('POST', url, data))
             self._spider.addtask(urls)
             return phase
 
@@ -147,6 +157,7 @@ class WSJHandler(Handler):
     def _parsetitle(self, ori):
         href = ori[ori.index('href="')+6:ori.index('">')]
         title = ori[ori.index('">')+2:-4]
+        title = unidecode(title.decode('utf-8'))
         return href, title
 
     def _parsedate(self, ori):
@@ -156,16 +167,44 @@ class WSJHandler(Handler):
         return ori[ori.index('">')+2:-5]
 
     def _debug(self, s, log=True):
-        message = '{0} [{1}] {2}\n'.format(fullstamp(), WSJHandler.__name__, s)
+        message = '{0} [{1}] {2}'.format(fullstamp(), WSJHandler.__name__, s)
         if self.args['debug']:
             print(message)
             if log:
-                with open('WSJHandler.log', 'a') as log:
-                    log.write(message)
+                with open('WSJHandler.log', 'a') as f:
+                    f.write(message+'\n')
 
 
 def main():
-    pass
+    driver = Driver(SETTINGS)
+    urls = generateseeds('deflation', [2015], [1, 2, 3])
+    driver.addtask('WSJSpider', urls)
+    driver.start()
+
+
+def generateseeds(keyword, year, month):
+    base = 'http://online.wsj.com/search/term.html?KEYWORDS=' + keyword
+    data = {'KEYWORDS': keyword,
+            'fromDate': '04/01/15',
+            'toDate': '04/30/15',
+            'source': 'WSJ.com',
+            'media': 'All',
+            'page_no': '',
+            'sorted_by': 'relevance',
+            'date_range': '90 days',
+            'adv_search': 'open'}
+    urls = []
+    for y in year:
+        for m in month:
+            ys = str(y % 100) if y % 100 >= 10 else ('0' + str(y % 100))
+            ms = str(m) if m >= 10 else ('0' + str(m))
+            d = lastday(y, m)
+            ds = str(d) if d >= 10 else ('0' + str(d))
+            data['fromDate'] = ms+'/01/'+ys
+            data['toDate'] = ms+'/'+ds+'/'+ys
+            urls.append(DefaultScraper.encodeurl('POST', base, data))
+    return urls
+
 
 if __name__ == '__main__':
-    pass
+    main()

@@ -46,3 +46,7 @@ class TestDefaultScraper(TestCase):
 class SpiderTest:
     def __init__(self, name):
         self.name = name
+
+    def addtask(self, task):
+        print('{0} got url(s):'.format(self.name))
+        print(task)
