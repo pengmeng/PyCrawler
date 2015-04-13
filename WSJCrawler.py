@@ -178,11 +178,13 @@ class WSJHandler(Handler):
 def main():
     driver = Driver(SETTINGS)
     urls = generateseeds('deflation', [2015], [1, 2, 3])
+    urls2 = generateseeds('deflation', [2014])
     driver.addtask('WSJSpider', urls)
+    driver.addtask('WSJSpider', urls2)
     driver.start()
 
 
-def generateseeds(keyword, year, month):
+def generateseeds(keyword, year, month=None):
     base = 'http://online.wsj.com/search/term.html?KEYWORDS=' + keyword
     data = {'KEYWORDS': keyword,
             'fromDate': '04/01/15',
@@ -194,6 +196,8 @@ def generateseeds(keyword, year, month):
             'date_range': '90 days',
             'adv_search': 'open'}
     urls = []
+    if not month:
+        month = list(xrange(1, 13))
     for y in year:
         for m in month:
             ys = str(y % 100) if y % 100 >= 10 else ('0' + str(y % 100))

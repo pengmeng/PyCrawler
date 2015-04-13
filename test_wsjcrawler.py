@@ -1,4 +1,5 @@
 __author__ = 'mengpeng'
+import unittest
 from unittest import TestCase
 from test.test_scraper import SpiderTest
 from WSJCrawler import *
@@ -22,6 +23,7 @@ class TestBasicFunc(TestCase):
 
 
 class TestWSJHandler(TestCase):
+    @unittest.skip('succ')
     def test_parse(self):
         h = WSJHandler(SpiderTest('testspider'))
         data = {'fromDate': '04/01/15', 'toDate': '04/30/15', 'page_no': ''}
