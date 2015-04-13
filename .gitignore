@@ -12,6 +12,7 @@ log/
 tmp/
 *.json
 *.txt
+*.html
 
 # C extensions
 *.so
