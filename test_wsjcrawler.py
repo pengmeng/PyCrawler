@@ -13,12 +13,11 @@ class TestBasicFunc(TestCase):
 
     def test_date2num(self):
         self.assertEqual(20150413, date2num('04/13/15'))
-        self.assertEqual(20150413, date2num('not'))
 
     def test_generateseeds(self):
-        urls = generateseeds('fuck', [2015], [1, 2, 3, 4])
+        urls = generateseeds('seed1', [2015], [1, 2, 3, 4])
         self.assertEqual(4, len(urls))
-        urls = generateseeds('fucks', [2014, 2015], [1, 2, 3, 10, 11, 12])
+        urls = generateseeds('seed2', [2014, 2015], [1, 2, 3, 10, 11, 12])
         self.assertEqual(12, len(urls))
 
 
