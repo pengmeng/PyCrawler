@@ -2,6 +2,7 @@ __author__ = 'mengpeng'
 import re
 import time
 import math
+import urllib
 from unidecode import unidecode
 from pycrawler.persist import Item
 from pycrawler.handler import Handler
@@ -12,7 +13,15 @@ from pycrawler.spider import Driver
 
 SETTINGS = {'name': 'WSJCrawler',
             'spiders': [
-                {'name': 'WSJSpider',
+                {'name': 'IncSpider',
+                 'scraper': {'name': 'DefaultScraper'},
+                 'frontier': {'name': 'BFSFrontier'},
+                 'handlers': [{'name': 'TempHandler',
+                               'args': {'path': './tmp/'}},
+                              {'name': 'WSJHandler'}],
+                 'persist': {'name': 'MongoPersist',
+                             'args': {'collection': 'wsj'}}},
+                {'name': 'WordSpider',
                  'scraper': {'name': 'DefaultScraper'},
                  'frontier': {'name': 'BFSFrontier'},
                  'handlers': [{'name': 'TempHandler',
@@ -20,6 +29,15 @@ SETTINGS = {'name': 'WSJCrawler',
                               {'name': 'WSJHandler'}],
                  'persist': {'name': 'MongoPersist',
                              'args': {'collection': 'wsj'}}}]}
+
+
+def loadkeywords(filename):
+    result = []
+    with open(filename, 'r') as f:
+        for word in f.readlines():
+            word = word.strip()
+            result.append(word)
+    return result
 
 
 def lastday(year, month):
@@ -176,19 +194,31 @@ class WSJHandler(Handler):
 
 
 def main():
+    years = list(range(2005, 2015))
     driver = Driver(SETTINGS)
-    urls = generateseeds('deflation', [2015], [1, 2, 3])
-    urls2 = generateseeds('deflation', [2014])
-    driver.addtask('WSJSpider', urls)
-    driver.addtask('WSJSpider', urls2)
+    inckey = loadkeywords('inc.txt')
+    url1, url2 = [], []
+    for each in iter(inckey):
+        url1.extend(generateseeds(each, years))
+        url1.extend(generateseeds(each, [2015], [1, 2, 3, 4]))
+    wordkey = loadkeywords('word.txt')
+    for each in iter(wordkey):
+        url2.extend(generateseeds(each, years))
+        url2.extend(generateseeds(each, [2015], [1, 2, 3, 4]))
+    print(inckey)
+    print(wordkey)
+    print(len(url1))
+    print(len(url2))
+    driver.addtask('IncSpider', url1)
+    driver.addtask('WordSpider', url2)
     driver.start()
 
 
 def generateseeds(keyword, year, month=None):
-    base = 'http://online.wsj.com/search/term.html?KEYWORDS=' + keyword
+    base = 'http://online.wsj.com/search/term.html?KEYWORDS=' + urllib.quote(keyword)
     data = {'KEYWORDS': keyword,
-            'fromDate': '04/01/15',
-            'toDate': '04/30/15',
+            'fromDate': '',
+            'toDate': '',
             'source': 'WSJ.com',
             'media': 'All',
             'page_no': '',
