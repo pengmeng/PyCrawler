@@ -84,6 +84,9 @@ class BFSFrontier(Frontier):
         temp = self.redis.lrange(self.todo, 0, self.__len__())
         return item in temp
 
+    def visitednum(self):
+        return self.redis.llen(self.visited)
+
     def add(self, item):
         if isinstance(item, list):
             for each in iter(item):
