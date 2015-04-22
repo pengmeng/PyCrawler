@@ -156,7 +156,7 @@ class Driver(object):
         print(self.name+' report:\n')
         for spider in self.spiders.itervalues():
             spider.report()
-            print('\n')
+            print('')
 
     def _debug(self, s):
         if self.debug:

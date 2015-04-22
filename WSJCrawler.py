@@ -1,4 +1,5 @@
 __author__ = 'mengpeng'
+import sys
 import re
 import time
 import math
@@ -130,7 +131,7 @@ class WSJHandler(Handler):
         if notfound in html:
             self._debug('No results in '+url)
             return None
-        pagep = re.compile('<li class="listFirst">[0-9of\-\s]*</li>')
+        pagep = re.compile('<li class="listFirst">[0-9of,\-\s]*</li>')
         titlep = re.compile('<a class="mjLinkItem.*</a>')
         tagp = re.compile('<li class="metadataType-section.*</li>')
         datep = re.compile('<li class="metadataType-timeStamp first">[0-9/]*')
@@ -158,6 +159,8 @@ class WSJHandler(Handler):
 
     def _parsepage(self, page, oriurl):
         page = page[page.index('> ')+2:-5].strip()
+        if ',' in page:
+            page = page.replace(',', '')
         if page.startswith('1-'):
             url, data = DefaultScraper.parseurl(oriurl)
             keyword = url[url.index('=')+1:]
@@ -195,25 +198,26 @@ class WSJHandler(Handler):
                 f.write(message+'\n')
 
 
-def main():
-    years = list(range(2005, 2015))
+def main(option):
     driver = Driver(SETTINGS)
-    inckey = loadkeywords('inc.txt')
-    url1, url2 = [], []
-    for each in iter(inckey):
-        url1.extend(generateseeds(each, years))
-        url1.extend(generateseeds(each, [2015], [1, 2, 3, 4]))
-    wordkey = loadkeywords('word.txt')
-    for each in iter(wordkey):
-        url2.extend(generateseeds(each, years))
-        url2.extend(generateseeds(each, [2015], [1, 2, 3, 4]))
-    print(inckey)
-    print(wordkey)
-    print(len(url1))
-    print(len(url2))
-    driver.addtask('IncSpider', url1)
-    driver.addtask('WordSpider', url2)
-    driver.start()
+    if option == 'start':
+        inckey = loadkeywords('inc.txt')
+        url1, url2 = [], []
+        years = list(range(2005, 2015))
+        for each in iter(inckey):
+            url1.extend(generateseeds(each, years))
+            url1.extend(generateseeds(each, [2015], [1, 2, 3, 4]))
+        wordkey = loadkeywords('word.txt')
+        for each in iter(wordkey):
+            url2.extend(generateseeds(each, years))
+            url2.extend(generateseeds(each, [2015], [1, 2, 3, 4]))
+        driver.addtask('IncSpider', url1)
+        driver.addtask('WordSpider', url2)
+        driver.start()
+    elif option == 'report':
+        driver.report()
+    else:
+        print('Option not supported.')
 
 
 def generateseeds(keyword, year, month=None):
@@ -243,4 +247,9 @@ def generateseeds(keyword, year, month=None):
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) != 2:
+        print('Usage:')
+        print('   start:\t python WSJCrawler.py start')
+        print('   report:\t python WSJCrawler.py report')
+    else:
+        main(sys.argv[1])
