@@ -36,6 +36,9 @@ class Frontier(object):
     def __contains__(self, item):
         raise NotImplementedError
 
+    def visitednum(self):
+        raise NotImplementedError
+
     def add(self, item):
         raise NotImplementedError
 

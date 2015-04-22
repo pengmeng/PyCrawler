@@ -32,6 +32,9 @@ class Persist(object):
         else:
             raise PersistException('No Persist class named '+name)
 
+    def __len__(self):
+        raise NotImplementedError
+
     def setargs(self, args):
         raise NotImplementedError
     
@@ -55,6 +58,9 @@ class MongoPersist(Persist):
             self.args[key] = value
         self.mongo.db = self.args['db']
         self.mongo.coll = self.args['collection']
+
+    def __len__(self):
+        return self.mongo.count()
 
     def save(self, items):
         try:

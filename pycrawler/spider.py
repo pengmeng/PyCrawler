@@ -70,6 +70,13 @@ class Spider(Thread):
         self._debug('Stopped by driver')
         #self.frontier.save()
 
+    def report(self):
+        print(self.name+' report:')
+        print('Todo urls: {0}'.format(len(self.frontier)))
+        print('Visited urls: {0}'.format(self.frontier.visitednum()))
+        print('Failed urls: {0}'.format('Not supported'))
+        print('Saved items: {0}'.format(len(self.persist)))
+
     def _pause(self):
         if self.pause:
             self._debug('Paused by driver')
@@ -144,6 +151,12 @@ class Driver(object):
             if spider.isAlive():
                 spider.retire()
         self._debug('Shut down.')
+
+    def report(self):
+        print(self.name+' report:\n')
+        for spider in self.spiders.itervalues():
+            spider.report()
+            print('\n')
 
     def _debug(self, s):
         if self.debug:
