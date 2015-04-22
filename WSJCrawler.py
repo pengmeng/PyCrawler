@@ -117,7 +117,9 @@ class WSJHandler(Handler):
     def __init__(self, spider):
         super(WSJHandler, self).__init__(spider)
         self._spider = spider
-        self.args = {'debug': True}
+        self.args = {'debug': True,
+                     'log': True,
+                     'logfile': 'WSJHandler.log'}
 
     def setargs(self, args):
         for key, value in args.iteritems():
@@ -188,9 +190,9 @@ class WSJHandler(Handler):
         message = '{0} [{1}] {2}'.format(fullstamp(), WSJHandler.__name__, s)
         if self.args['debug']:
             print(message)
-            if log:
-                with open('WSJHandler.log', 'a') as f:
-                    f.write(message+'\n')
+        if self.args['log']:
+            with open(self.args['logfile'], 'a') as f:
+                f.write(message+'\n')
 
 
 def main():
