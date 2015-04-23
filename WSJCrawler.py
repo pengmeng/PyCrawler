@@ -142,6 +142,8 @@ class WSJHandler(Handler):
         titles = titlep.findall(html)
         dates = datep.findall(html)
         tags = tagp.findall(html)
+        if len(titles) != len(tags):
+            tags = ['']*len(titles)
         if len(titles) == len(dates) == len(tags):
             phase = self._parsepage(page[0], url)
             result = [phase] if phase else []
@@ -187,7 +189,7 @@ class WSJHandler(Handler):
         return ori[-8:]
 
     def _parsetag(self, ori):
-        return ori[ori.index('">')+2:-5]
+        return ori[ori.index('">')+2:-5] if ori != '' else ori
 
     def _debug(self, s, log=True):
         message = '{0} [{1}] {2}'.format(fullstamp(), WSJHandler.__name__, s)
@@ -199,6 +201,9 @@ class WSJHandler(Handler):
 
 
 def main(option):
+    if option not in ['start', 'report']:
+        print('Option not supported.')
+        return
     driver = Driver(SETTINGS)
     if option == 'start':
         inckey = loadkeywords('inc.txt')
@@ -216,8 +221,6 @@ def main(option):
         driver.start()
     elif option == 'report':
         driver.report()
-    else:
-        print('Option not supported.')
 
 
 def generateseeds(keyword, year, month=None):
