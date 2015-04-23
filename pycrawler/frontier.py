@@ -54,6 +54,9 @@ class Frontier(object):
     def validate(self, item):
         raise NotImplementedError
 
+    def clean(self, *args):
+        raise NotImplementedError
+
 
 @Frontier.register
 class BFSFrontier(Frontier):

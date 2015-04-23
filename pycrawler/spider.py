@@ -1,4 +1,5 @@
 __author__ = 'mengpeng'
+import os
 from threading import Thread
 from pycrawler.exception import PyCrawlerException
 from pycrawler.scraper import Scraper
@@ -69,6 +70,25 @@ class Spider(Thread):
         self.keep = False
         self._debug('Stopped by driver')
         #self.frontier.save()
+
+    def recover(self, filename):
+        if not os.path.exists(filename):
+            self._debug('File {0} not found'.format(filename))
+        else:
+            self._debug('Recovering from '+filename)
+            count = 0
+            with open(filename, 'r') as f:
+                for each in f.readlines():
+                    count += 1
+                    url, body = self.scraper.fetchone(each)
+                    for handler in self.handlers:
+                        item = handler.parse(body, url)
+                        if item:
+                            self.persist.save(item)
+            self._debug('Recovered {0} urls'.format(count))
+
+    def clean(self, *args):
+        self.frontier.clean(*args)
 
     def report(self):
         print(self.name+' report:')
@@ -151,6 +171,13 @@ class Driver(object):
             if spider.isAlive():
                 spider.retire()
         self._debug('Shut down.')
+
+    def recover(self, spidername, filename):
+        spider = self.getspider(spidername)
+        self._debug('Recover {0} from {1}'.format(spidername, filename))
+        spider.recover(filename)
+        spider.clean('todo')
+        spider.report()
 
     def report(self):
         print(self.name+' report:\n')

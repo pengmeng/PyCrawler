@@ -201,8 +201,11 @@ class WSJHandler(Handler):
 
 
 def main(option):
-    if option not in ['start', 'report']:
+    if option not in ['start', 'report', 'extract', 'recover']:
         print('Option not supported.')
+        return
+    if option == 'extract':
+        extractlog('WSJHandler.log')
         return
     driver = Driver(SETTINGS)
     if option == 'start':
@@ -221,6 +224,8 @@ def main(option):
         driver.start()
     elif option == 'report':
         driver.report()
+    elif option == 'recover':
+        driver.recover('WordSpider', 'failedurls.txt')
 
 
 def generateseeds(keyword, year, month=None):
@@ -247,6 +252,18 @@ def generateseeds(keyword, year, month=None):
             data['toDate'] = ms+'/'+ds+'/'+ys
             urls.append(DefaultScraper.encodeurl('POST', base, data))
     return urls
+
+
+def extractlog(logfile):
+    print('Extracting urls from '+logfile)
+    with open('failedurls.txt', 'w') as outf:
+        with open(logfile, 'r') as inf:
+            for each in inf.readlines():
+                if 'No results' not in each and 'http://' in each:
+                    each = each[each.index('http://'):]
+                    outf.write(each)
+        outf.flush()
+    print('Done')
 
 
 if __name__ == '__main__':
