@@ -52,6 +52,26 @@ driver.stop()
 ```
 You will get output like this:
 ``` shell
+2015-04-24 20:41:23 [FirstCrawler] Start building...
+2015-04-24 20:41:23 [Spider] Start building...
+2015-04-24 20:41:23 [Spider] Build successful!
+2015-04-24 20:41:23 [FirstCrawler] Build successful!
+2015-04-24 20:41:23 [FirstCrawler] Start spiders...
+2015-04-24 20:41:23 [Spider] Start crawling...
+2015-04-24 20:41:23 [Spider] Scraped: http://www.google.com
+2015-04-24 20:41:23 [Spider] Scraped: http://www.google.com/imghp?hl=en&tab=wi
+2015-04-24 20:41:24 [Spider] Scraped: http://www.google.com/intl/en/options/
+2015-04-24 20:41:24 [Spider] Scraped: http://www.google.com/history/optout?hl=en
+2015-04-24 20:41:24 [Spider] Scraped: http://maps.google.com/maps?hl=en&tab=wl
+2015-04-24 20:41:24 [Spider] Scraped: http://www.youtube.com/?tab=w1
+2015-04-24 20:41:24 [Spider] Scraped: http://news.google.com/nwshp?hl=en&tab=wn
+2015-04-24 20:41:25 [FirstCrawler] Stop spiders...
+2015-04-24 20:41:25 [Spider] Stopped by driver
+2015-04-24 20:41:25 [FirstCrawler] Shut down.
+2015-04-24 20:41:30 [Spider] Scraped: http://www.aysor.am/en/news/2015/04/24/Delegation-led-by-French-President-arrives-in-Yerevan/940680
+...
+2015-04-24 20:41:34 [Spider] Scraped: http://www.nytimes.com/aponline/2015/04/24/world/asia/ap-as-philippines-china.html
+2015-04-24 20:41:40 [Spider] Crawling finished!
 ```
 
 ### Demo (Customize)
