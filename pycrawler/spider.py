@@ -55,7 +55,7 @@ class Spider(Thread):
     def run(self):
         self._debug('Start crawling...')
         while self.frontier.hasnext() and self.keep:
-            urls = self.frontier.next(10)
+            urls = self.frontier.next(100)
             results = self.scraper.fetch(urls)
             for url, body in results.iteritems():
                 for handler in self.handlers:

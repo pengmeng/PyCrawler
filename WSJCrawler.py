@@ -88,7 +88,7 @@ class Phase(Item):
 class Article(Item):
     def __init__(self, title, url, date, tag, keyword):
         super(Article, self).__init__()
-        self._id = gethash(title + date)
+        self._id = gethash(title + date + keyword)
         self.title = title
         self.url = url
         self.date = self._cleandate(date)
@@ -176,8 +176,8 @@ class WSJHandler(Handler):
             return phase
 
     def _parsekeyword(self, oriurl):
-        url, _ = DefaultScraper.parseurl(oriurl)
-        return url[url.index('=')+1:]
+        _, data = DefaultScraper.parseurl(oriurl)
+        return data['KEYWORDS']
 
     def _parsetitle(self, ori):
         href = ori[ori.index('href="')+6:ori.index('">')]
@@ -191,7 +191,7 @@ class WSJHandler(Handler):
     def _parsetag(self, ori):
         return ori[ori.index('">')+2:-5] if ori != '' else ori
 
-    def _debug(self, s, log=True):
+    def _debug(self, s):
         message = '{0} [{1}] {2}'.format(fullstamp(), WSJHandler.__name__, s)
         if self.args['debug']:
             print(message)
