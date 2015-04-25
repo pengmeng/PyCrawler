@@ -65,7 +65,7 @@ class TestWSJHandler(TestCase):
 
     def test__parsekeyword(self):
         h = WSJHandler(SpiderTest('testspider'))
-        data = {'fromDate': '04/01/15', 'toDate': '04/30/15', 'page_no': ''}
+        data = {'fromDate': '04/01/15', 'toDate': '04/30/15', 'page_no': '', 'KEYWORDS': 'deflation'}
         url = DefaultScraper.encodeurl('POST', 'http://online.wsj.com/search/term.html?KEYWORDS=deflation', data)
         self.assertEqual('deflation', h._parsekeyword(url))
 
