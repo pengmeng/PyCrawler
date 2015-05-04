@@ -56,15 +56,15 @@ class DefaultScraper(Scraper):
         url, data = DefaultScraper.parseurl(oriurl)
         data = urllib.urlencode(data) if data else data
         try:
-            res = urllib2.urlopen(url=url, data=data, timeout=5)
+            res = urllib2.urlopen(url=url, data=data, timeout=10)
         except (socket.timeout, urllib2.HTTPError, IOError) as e:
-            self._debug(e.message+': '+url)
+            self._debug(e.message+': '+oriurl)
             html = None
         else:
             html = res.read()
             res.close()
         if self.args['debug']:
-            self._debug('Scraped: '+url)
+            print('{0} [{1}] Scraped: {2}'.format(fullstamp(), self._spider.name, url))
         return oriurl, html
 
     def fetch(self, urllist):
