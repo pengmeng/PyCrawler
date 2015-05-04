@@ -196,12 +196,15 @@ class WSJHandler(Handler):
                 f.write(message+'\n')
 
 
-def main(option):
+def main(option, *args):
     if option not in ['start', 'report', 'extract', 'recover']:
         print('Option not supported.')
         return
     if option == 'extract':
-        extractlog('WSJHandler.log')
+        if len(args) != 2:
+            print('Usage: python WSJCrawler.py extract logfile outfile')
+        else:
+            extractlog(args[0], args[1])
         return
     driver = Driver(SETTINGS)
     if option == 'start':
@@ -221,7 +224,10 @@ def main(option):
     elif option == 'report':
         driver.report()
     elif option == 'recover':
-        driver.recover('WordSpider', 'failedurls.txt')
+        if len(args) != 2:
+            print('Usage: python WSJCrawler.py recover spidername urlfile')
+        else:
+            driver.recover(args[0], args[1])
 
 
 def generateseeds(keyword, year, month=None):
@@ -250,9 +256,9 @@ def generateseeds(keyword, year, month=None):
     return urls
 
 
-def extractlog(logfile):
+def extractlog(logfile, outfile):
     print('Extracting urls from '+logfile)
-    with open('failedurls.txt', 'w') as outf:
+    with open(outfile, 'w') as outf:
         with open(logfile, 'r') as inf:
             for each in inf.readlines():
                 if 'No results' not in each and 'http://' in each:
@@ -263,9 +269,13 @@ def extractlog(logfile):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         print('Usage:')
         print('   start:\t python WSJCrawler.py start')
         print('   report:\t python WSJCrawler.py report')
-    else:
+        print('   extract:\t python WSJCrawler.py extract logfile outfile')
+        print('   recover:\t python WSJCrawler.py recover spidername urlfile')
+    elif len(sys.argv) == 2:
         main(sys.argv[1])
+    else:
+        main(sys.argv[1], *sys.argv[2:])
