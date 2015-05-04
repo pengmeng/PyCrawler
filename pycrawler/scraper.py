@@ -9,6 +9,33 @@ from pycrawler.utils.tools import datestamp
 from pycrawler.exception import ScraperException
 
 
+def parseurl(url):
+    data = None
+    if '<args>' in url:
+        parts = url.split('<args>')
+        if len(parts) != 2:
+            raise ScraperException('Wrong post url format: '+url)
+        url = parts[0]
+        try:
+            data = ast.literal_eval(parts[1])
+        except ValueError:
+            raise ScraperException('Wrong post args format: '+parts[1])
+    return url, data
+
+
+def encodeurl(method, url, data=None):
+    if method == 'POST' and data:
+        url += '<args>' + data.__str__()
+        return url
+    elif method == 'GET' and data:
+        url += urllib.urlencode(data)
+        return url
+    elif not data:
+        return url
+    else:
+        raise ScraperException('Unsupported http method: '+method)
+
+
 class Scraper(object):
     Dict = {}
 
@@ -87,27 +114,8 @@ class DefaultScraper(Scraper):
 
     @staticmethod
     def parseurl(url):
-        data = None
-        if '<args>' in url:
-            parts = url.split('<args>')
-            if len(parts) != 2:
-                raise ScraperException('Wrong post url format: '+url)
-            url = parts[0]
-            try:
-                data = ast.literal_eval(parts[1])
-            except ValueError:
-                raise ScraperException('Wrong post args format: '+parts[1])
-        return url, data
+        return parseurl(url)
 
     @staticmethod
     def encodeurl(method, url, data=None):
-        if method == 'POST' and data:
-            url += '<args>' + data.__str__()
-            return url
-        elif method == 'GET' and data:
-            url += urllib.urlencode(data)
-            return url
-        elif not data:
-            return url
-        else:
-            raise ScraperException('Unsupported http method: '+method)
+        return encodeurl(method, url, data=data)
