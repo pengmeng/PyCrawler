@@ -3,6 +3,7 @@ from unittest import TestCase
 from pycrawler.scraper import Scraper
 from pycrawler.scraper import DefaultScraper
 from pycrawler.exception import ScraperException
+from pycrawler.logger import Logger
 
 
 class TestScraper(TestCase):
@@ -46,6 +47,7 @@ class TestDefaultScraper(TestCase):
 class SpiderTest:
     def __init__(self, name):
         self.name = name
+        self.logger = Logger('Default')
 
     def addtask(self, task):
         print('{0} got url(s):'.format(self.name))
