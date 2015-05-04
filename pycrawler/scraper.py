@@ -4,8 +4,6 @@ import ast
 import urllib
 import socket
 from eventlet.green import urllib2
-from pycrawler.utils.tools import fullstamp
-from pycrawler.utils.tools import datestamp
 from pycrawler.exception import ScraperException
 
 

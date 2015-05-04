@@ -9,7 +9,6 @@ from pycrawler.persist import Item
 from pycrawler.handler import Handler
 from pycrawler.scraper import DefaultScraper
 from pycrawler.utils.tools import gethash
-from pycrawler.utils.tools import fullstamp
 from pycrawler.spider import Driver
 
 SETTINGS = {'name': 'WSJCrawler',
@@ -255,7 +254,7 @@ def extractlog(logfile, outfile):
     with open(outfile, 'w') as outf:
         with open(logfile, 'r') as inf:
             for each in inf.readlines():
-                if 'No results' not in each and 'http://' in each:
+                if '[ERROR]' in each and 'http://' in each:
                     each = each[each.index('http://'):]
                     outf.write(each)
         outf.flush()
