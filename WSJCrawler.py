@@ -114,6 +114,8 @@ class WSJHandler(Handler):
     def __init__(self, spider):
         super(WSJHandler, self).__init__(spider)
         self._spider = spider
+        self.logger = spider.logger
+        self.name = spider.name+'-Handler'
         self.args = {'debug': True,
                      'log': True,
                      'logfile': 'WSJHandler.log'}
@@ -125,7 +127,7 @@ class WSJHandler(Handler):
     def parse(self, html, url):
         notfound = 'class="src_no_results"'
         if notfound in html:
-            self._debug('No results in '+url)
+            self.logger.warning(self.name, 'No results in '+url)
             return None
         pagep = re.compile('<li class="listFirst">[0-9of,\-\s]*</li>')
         titlep = re.compile('<a class="mjLinkItem.*</a>')
@@ -133,7 +135,7 @@ class WSJHandler(Handler):
         datep = re.compile('<li class="metadataType-timeStamp first">[0-9/]*')
         page = pagep.findall(html)
         if len(page) != 1:
-            self._debug('Page index not found in '+url)
+            self.logger.error(self.name, 'Page index not found in '+url)
             return None
         titles = titlep.findall(html)
         dates = datep.findall(html)
@@ -152,7 +154,7 @@ class WSJHandler(Handler):
                 result.append(article)
             return result
         else:
-            self._debug('Item numbers not match in '+url)
+            self.logger.error(self.name, 'Item numbers not match in '+url)
             return None
 
     def _parsepage(self, page, oriurl):
@@ -186,14 +188,6 @@ class WSJHandler(Handler):
 
     def _parsetag(self, ori):
         return ori[ori.index('">')+2:-5] if ori != '' else ori
-
-    def _debug(self, s):
-        message = '{0} [{1}] {2}'.format(fullstamp(), WSJHandler.__name__, s)
-        if self.args['debug']:
-            print(message)
-        if self.args['log']:
-            with open(self.args['logfile'], 'a') as f:
-                f.write(message+'\n')
 
 
 def main(option, *args):

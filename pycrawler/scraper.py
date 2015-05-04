@@ -70,7 +70,8 @@ class DefaultScraper(Scraper):
     def __init__(self, spider):
         super(DefaultScraper, self).__init__(spider)
         self._spider = spider
-        self.logger = self._spider.logger
+        self.logger = spider.logger
+        self.name = spider.name+'-Scraper'
         self.args = {'debug': True,
                      'timeout': 10}
 
@@ -86,10 +87,10 @@ class DefaultScraper(Scraper):
         try:
             res = urllib2.urlopen(url=url, data=data, timeout=self.args['timeout'])
         except socket.timeout as e:
-            self.logger.warning(self._spider.name+'-Scraper', e.message+': '+oriurl)
+            self.logger.error(self.name, e.message+': '+oriurl)
             html = None
         except (urllib2.HTTPError, IOError):
-            self.logger.error(self._spider.name+'-Scraper', 'IOError: '+oriurl)
+            self.logger.error(self.name, 'IOError: '+oriurl)
             html = None
         else:
             html = res.read()
