@@ -70,9 +70,8 @@ class DefaultScraper(Scraper):
     def __init__(self, spider):
         super(DefaultScraper, self).__init__(spider)
         self._spider = spider
+        self.logger = self._spider.logger
         self.args = {'debug': True,
-                     'log': True,
-                     'logfile': spider.name+'Scraper-'+datestamp()+'.log',
                      'timeout': 10}
 
     def setargs(self, args):
@@ -86,14 +85,17 @@ class DefaultScraper(Scraper):
         data = urllib.urlencode(data) if data else data
         try:
             res = urllib2.urlopen(url=url, data=data, timeout=self.args['timeout'])
-        except (socket.timeout, urllib2.HTTPError, IOError) as e:
-            self._debug(e.message+': '+oriurl)
+        except socket.timeout as e:
+            self.logger.warning(self._spider.name+'-Scraper', e.message+': '+oriurl)
+            html = None
+        except (urllib2.HTTPError, IOError):
+            self.logger.error(self._spider.name+'-Scraper', 'IOError: '+oriurl)
             html = None
         else:
             html = res.read()
             res.close()
         if self.args['debug']:
-            print('{0} [{1}] Scraped: {2}'.format(fullstamp(), self._spider.name, url))
+            self.logger.info(self._spider.name, 'Scraped: '+url)
         return oriurl, html
 
     def fetch(self, urllist):
@@ -103,11 +105,6 @@ class DefaultScraper(Scraper):
             if html:
                 results[url] = html
         return results
-
-    def _debug(self, s):
-        message = '{0} [{1}] {2}'.format(fullstamp(), self._spider.name, s)
-        if self.args['debug']:
-            print(message)
 
     @staticmethod
     def parseurl(url):
