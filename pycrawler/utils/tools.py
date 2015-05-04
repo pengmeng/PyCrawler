@@ -10,7 +10,7 @@ def timestamp():
     return time.strftime("%H:%M:%S", time.localtime(time.time()))
 
 
-def datastamp():
+def datestamp():
     return time.strftime("%Y-%m-%d", time.localtime(time.time()))
 
 

@@ -5,6 +5,7 @@ import urllib
 import socket
 from eventlet.green import urllib2
 from pycrawler.utils.tools import fullstamp
+from pycrawler.utils.tools import datestamp
 from pycrawler.exception import ScraperException
 
 
@@ -44,7 +45,8 @@ class DefaultScraper(Scraper):
         self._spider = spider
         self.args = {'debug': True,
                      'log': True,
-                     'logfile': spider.name+'Scraper.log'}
+                     'logfile': spider.name+'Scraper-'+datestamp()+'.log',
+                     'timeout': 10}
 
     def setargs(self, args):
         if not isinstance(args, dict):
@@ -56,7 +58,7 @@ class DefaultScraper(Scraper):
         url, data = DefaultScraper.parseurl(oriurl)
         data = urllib.urlencode(data) if data else data
         try:
-            res = urllib2.urlopen(url=url, data=data, timeout=10)
+            res = urllib2.urlopen(url=url, data=data, timeout=self.args['timeout'])
         except (socket.timeout, urllib2.HTTPError, IOError) as e:
             self._debug(e.message+': '+oriurl)
             html = None
