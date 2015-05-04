@@ -6,6 +6,7 @@ from pycrawler.scraper import Scraper
 from pycrawler.frontier import Frontier
 from pycrawler.handler import Handler
 from pycrawler.persist import Persist
+from pycrawler.logger import Logger
 from pycrawler.utils.tools import fullstamp
 
 
@@ -18,6 +19,7 @@ class Spider(Thread):
         self.frontier = None
         self.handlers = []
         self.persist = None
+        self.logger = None
         self.debug = debug
         self._build(config)
         self.keep = True
@@ -26,8 +28,11 @@ class Spider(Thread):
     def _build(self, config):
         try:
             self.name = config['name']
+            Logger.register(self.name)
+            Logger.load()
+            self.logger = Logger(self.name)
             self.debug = config.get('debug', True)
-            self._debug('Start building...')
+            self.logger.info(self.name, 'Start building...')
             self.scraper = Scraper.getScraper(config['scraper']['name'])(self)
             if 'args' in config['scraper']:
                 self.scraper.setargs(config['scraper']['args'])
@@ -42,7 +47,7 @@ class Spider(Thread):
             self.persist = Persist.getPersist(config['persist']['name'])(self)
             if 'args' in config['persist']:
                 self.persist.setargs(config['persist']['args'])
-            self._debug('Build successful!')
+            self.logger.info(self.name, 'Build successful!')
         except KeyError as e:
             raise PyCrawlerException('Key \''+e.args[0]+'\' missing in config dict')
 
@@ -53,7 +58,7 @@ class Spider(Thread):
         self.frontier.add(task)
 
     def run(self):
-        self._debug('Start crawling...')
+        self.logger.warning(self.name, 'Start crawling...')
         while self.frontier.hasnext() and self.keep:
             urls = self.frontier.next(100)
             results = self.scraper.fetch(urls)
@@ -63,19 +68,18 @@ class Spider(Thread):
                     if item:
                         self.persist.save(item)
             self._pause()
-        self._debug('Crawling finished!')
+        self.logger.warning(self.name, 'Crawling finished!')
 
     def retire(self):
         self.pause = False
         self.keep = False
-        self._debug('Stopped by driver')
-        #self.frontier.save()
+        self.logger.info(self.name, 'Stopped by driver')
 
     def recover(self, filename):
         if not os.path.exists(filename):
-            self._debug('File {0} not found'.format(filename))
+            self.logger.info(self.name, 'File {0} not found'.format(filename))
         else:
-            self._debug('Recovering from '+filename)
+            self.logger.info(self.name, 'Recovering from '+filename)
             count = 0
             with open(filename, 'r') as f:
                 for each in f.readlines():
@@ -85,29 +89,27 @@ class Spider(Thread):
                         item = handler.parse(body, url)
                         if item:
                             self.persist.save(item)
-            self._debug('Recovered {0} urls'.format(count))
+            self.logger.info(self.name, 'Recovered {0} urls'.format(count))
 
     def clean(self, *args):
         self.frontier.clean(*args)
 
     def report(self):
-        print(self.name+' report:')
-        print('Todo urls: {0}'.format(len(self.frontier)))
-        print('Visited urls: {0}'.format(self.frontier.visitednum()))
-        print('Failed urls: {0}'.format('Not supported'))
-        print('Saved items: {0}'.format(len(self.persist)))
+        results = [self.name+' report:',
+                   'Todo urls: {0}'.format(len(self.frontier)),
+                   'Visited urls: {0}'.format(self.frontier.visitednum()),
+                   'Failed urls: {0}'.format('Not supported'),
+                   'Saved items: {0}'.format(len(self.persist))]
+        for each in results:
+            print(each)
 
     def _pause(self):
         if self.pause:
-            self._debug('Paused by driver')
+            self.logger.info(self.name, 'Paused by driver')
             while True:
                 if not self.pause:
-                    self._debug('Resume...')
+                    self.logger.info(self.name, 'Resume...')
                     break
-
-    def _debug(self, s):
-        if self.debug:
-            print('{0} [{1}] {2}'.format(fullstamp(), self.name, s))
 
 
 class Driver(object):
@@ -176,7 +178,6 @@ class Driver(object):
         spider = self.getspider(spidername)
         self._debug('Recover {0} from {1}'.format(spidername, filename))
         spider.recover(filename)
-        spider.clean('todo')
         spider.report()
 
     def report(self):

@@ -108,9 +108,6 @@ class DefaultScraper(Scraper):
         message = '{0} [{1}] {2}'.format(fullstamp(), self._spider.name, s)
         if self.args['debug']:
             print(message)
-        if self.args['log']:
-            with open(self.args['logfile'], 'a') as f:
-                f.write(message+'\n')
 
     @staticmethod
     def parseurl(url):
