@@ -2,6 +2,7 @@ __author__ = 'mengpeng'
 import eventlet
 import ast
 import urllib
+import socket
 from eventlet.green import urllib2
 from pycrawler.utils.tools import fullstamp
 from pycrawler.exception import ScraperException
@@ -41,7 +42,9 @@ class DefaultScraper(Scraper):
     def __init__(self, spider):
         super(DefaultScraper, self).__init__(spider)
         self._spider = spider
-        self.args = {'debug': True}
+        self.args = {'debug': True,
+                     'log': True,
+                     'logfile': spider.name+'Scraper.log'}
 
     def setargs(self, args):
         if not isinstance(args, dict):
@@ -53,14 +56,15 @@ class DefaultScraper(Scraper):
         url, data = DefaultScraper.parseurl(oriurl)
         data = urllib.urlencode(data) if data else data
         try:
-            res = urllib2.urlopen(url=url, data=data)
-        except (IOError, urllib2.HTTPError):
+            res = urllib2.urlopen(url=url, data=data, timeout=5)
+        except (socket.timeout, urllib2.HTTPError, IOError) as e:
+            self._debug(e.message+': '+url)
             html = None
         else:
             html = res.read()
             res.close()
         if self.args['debug']:
-            print('{0} [{1}] Scraped: {2}'.format(fullstamp(), self._spider.name, url))
+            self._debug('Scraped: '+url)
         return oriurl, html
 
     def fetch(self, urllist):
@@ -70,6 +74,14 @@ class DefaultScraper(Scraper):
             if html:
                 results[url] = html
         return results
+
+    def _debug(self, s):
+        message = '{0} [{1}] {2}'.format(fullstamp(), self._spider.name, s)
+        if self.args['debug']:
+            print(message)
+        if self.args['log']:
+            with open(self.args['logfile'], 'a') as f:
+                f.write(message+'\n')
 
     @staticmethod
     def parseurl(url):
