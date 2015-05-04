@@ -85,7 +85,3 @@ class TestWSJHandler(TestCase):
         h = WSJHandler(SpiderTest('testspider'))
         s = '<li class="metadataType-section">MoneyBeat</li>'
         self.assertEqual('MoneyBeat', h._parsetag(s))
-
-    def test__debug(self):
-        h = WSJHandler(SpiderTest('testspider'))
-        h._debug('test debug output and log')
