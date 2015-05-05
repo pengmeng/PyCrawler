@@ -83,8 +83,10 @@ class Spider(Thread):
             count = 0
             with open(filename, 'r') as f:
                 for each in f.readlines():
-                    count += 1
                     url, body = self.scraper.fetchone(each)
+                    if not body:
+                        continue
+                    count += 1
                     for handler in self.handlers:
                         item = handler.parse(body, url)
                         if item:

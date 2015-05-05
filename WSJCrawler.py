@@ -201,13 +201,13 @@ def main(option, *args):
         return
     driver = Driver(SETTINGS)
     if option == 'start':
-        inckey = loadkeywords('inc.txt')
+        inckey = loadkeywords('./data/inc.txt')
         url1, url2 = [], []
         years = list(range(2005, 2015))
         for each in iter(inckey):
             url1.extend(generateseeds(each, years))
             url1.extend(generateseeds(each, [2015], [1, 2, 3, 4]))
-        wordkey = loadkeywords('word.txt')
+        wordkey = loadkeywords('./data/word.txt')
         for each in iter(wordkey):
             url2.extend(generateseeds(each, years))
             url2.extend(generateseeds(each, [2015], [1, 2, 3, 4]))
