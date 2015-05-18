@@ -162,7 +162,7 @@ class WSJHandler(Handler):
             page = page.replace(',', '')
         if page.startswith('1-'):
             url, data = DefaultScraper.parseurl(oriurl)
-            keyword = url[url.index('=')+1:]
+            keyword = data['KEYWORDS']
             total = int(page.split(' of ')[1])
             phase = Phase(data['fromDate'], data['toDate'], keyword, total)
             urls = []
