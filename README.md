@@ -33,10 +33,7 @@ DRIVER = {'name': 'FirstCrawler',
                'frontier': {'name': 'BFSFrontier'},
                'handlers': [
                    {'name': 'TempHandler'},
-                   {'name': 'LinkHandler'}
-               ],
-               'persist': {'name': 'MongoPersist'}}
-          ]}
+                   {'name': 'LinkHandler'}]}]}
 ```
 This dictionary create a driver with one spider and using default arguments.
 Then build and run this driver by:
@@ -51,7 +48,7 @@ time.sleep(2)
 driver.stop()
 ```
 You will get output like this:
-``` shell
+```
 2015-04-24 20:41:23 [FirstCrawler] Start building...
 2015-04-24 20:41:23 [Spider] Start building...
 2015-04-24 20:41:23 [Spider] Build successful!
@@ -82,3 +79,6 @@ Thanks
  - beautifulsoup4
  - eventlet
  - pybloom
+ - pymongo
+ - redis
+ - Unidecode
