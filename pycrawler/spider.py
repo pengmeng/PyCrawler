@@ -5,9 +5,9 @@ from pycrawler.exception import PyCrawlerException
 from pycrawler.scraper import Scraper
 from pycrawler.frontier import Frontier
 from pycrawler.handler import Handler
-from pycrawler.persist import Persist
 from pycrawler.logger import Logger
 from pycrawler.utils.tools import fullstamp
+from mongojuice.document import Document
 
 
 class Spider(Thread):
@@ -18,7 +18,6 @@ class Spider(Thread):
         self.scraper = None
         self.frontier = None
         self.handlers = []
-        self.persist = None
         self.logger = None
         self.debug = debug
         self._build(config)
@@ -44,9 +43,6 @@ class Spider(Thread):
                 if 'args' in each:
                     handler.setargs(each['args'])
                 self.handlers.append(handler)
-            self.persist = Persist.getPersist(config['persist']['name'])(self)
-            if 'args' in config['persist']:
-                self.persist.setargs(config['persist']['args'])
             self.logger.info(self.name, 'Build successful!')
         except KeyError as e:
             raise PyCrawlerException('Key \''+e.args[0]+'\' missing in config dict')
@@ -64,9 +60,12 @@ class Spider(Thread):
             results = self.scraper.fetch(urls)
             for url, body in results.iteritems():
                 for handler in self.handlers:
-                    item = handler.parse(body, url)
-                    if item:
-                        self.persist.save(item)
+                    items = handler.parse(body, url)
+                    if isinstance(items, list):
+                        for item in items:
+                            item.save()
+                    elif isinstance(items, Document):
+                        items.save()
             self._pause()
         self.logger.warning(self.name, 'Crawling finished!')
 
@@ -88,9 +87,15 @@ class Spider(Thread):
                         continue
                     count += 1
                     for handler in self.handlers:
-                        item = handler.parse(body, url)
-                        if item:
-                            self.persist.save(item)
+                        items = handler.parse(body, url)
+                        try:
+                            if isinstance(items, list):
+                                for item in items:
+                                    item.save()
+                            elif isinstance(items, Document):
+                                items.save()
+                        except AttributeError:
+                            raise PyCrawlerException('Items must implement save() method.')
             self.logger.info(self.name, 'Recovered {0} urls'.format(count))
 
     def clean(self, *args):
@@ -100,8 +105,7 @@ class Spider(Thread):
         results = [self.name+' report:',
                    'Todo urls: {0}'.format(len(self.frontier)),
                    'Visited urls: {0}'.format(self.frontier.visitednum()),
-                   'Failed urls: {0}'.format('Not supported'),
-                   'Saved items: {0}'.format(len(self.persist))]
+                   'Failed urls: {0}'.format('Not supported')]
         for each in results:
             print(each)
 

@@ -1,15 +1,6 @@
 __author__ = 'mengpeng'
 from mongojuice.mongo import Mongo
-from mongojuice.document import Document
 from pycrawler.exception import PersistException
-
-
-class Item(Document):
-    def __init__(self):
-        super(Item, self).__init__()
-
-    def persistable(self):
-        raise NotImplementedError
 
 
 class Persist(object):
@@ -67,13 +58,13 @@ class MongoPersist(Persist):
         try:
             if isinstance(items, list):
                 try:
-                    items = [x.tomongo() for x in items]
-                    map(self.mongo.insert, items)
+                    for each in items:
+                        each.save()
                 except AttributeError:
-                    raise PersistException('Items must implement tomongo()')
+                    raise PersistException('Item must inherit')
             else:
                 try:
-                    self.mongo.insert(items.tomongo())
+                    items.save()
                 except AttributeError:
                     raise PersistException('Items must implement tomongo()')
         except (AttributeError, TypeError) as e:
