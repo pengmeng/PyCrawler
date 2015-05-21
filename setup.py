@@ -1,30 +1,35 @@
 import os
-from setuptools import setup, find_packages
+try:
+    from setuptools import find_packages, setup, Command
+except ImportError:
+    from distutils.core import find_packages, setup, Command
 
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-version = '0.0.1'
+DESCRIPTION = 'A lightweight Python crawler framework'
+LONG_DESCRIPTION = read('README.md')
 
 setup(
     name='pycrawler',
-    version=version,
+    version='0.0.1',
     packages=find_packages(),
     url='https://github.com/pengmeng/PyCrawler',
     license='MIT License',
     author='mengpeng',
     author_email='mengp3157@gmail.com',
-    description='A lightweight Python crawler framework',
-    long_description=read('README.md'),
+    description=DESCRIPTION,
+    long_description=LONG_DESCRIPTION,
     platforms='any',
     install_requires=['beautifulsoup4>=4.3.2',
                       'bitarray>=0.8.1',
                       'eventlet>=0.17.2',
                       'greenlet>=0.4.5',
                       'pybloom>=1.1',
-                      'pymongo>=2.8',
-                      'redis>=2.10.3'],
+                      'pymongo>=3.0.1',
+                      'redis>=2.10.3',
+                      'Unidecode>=0.4.17'],
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
