@@ -1,11 +1,12 @@
 __author__ = 'mengpeng'
-from pycrawler.utils.mongojuice import MongoJuice
+from mongojuice.mongo import Mongo
+from mongojuice.document import Document
 from pycrawler.exception import PersistException
 
 
-class Item(object):
+class Item(Document):
     def __init__(self):
-        pass
+        super(Item, self).__init__()
 
     def persistable(self):
         raise NotImplementedError
@@ -49,15 +50,15 @@ class MongoPersist(Persist):
         self._spider = spider
         self.args = {'db': 'pycrawler',
                      'collection': spider.name+'-items'}
-        self.mongo = MongoJuice('pycrawler', spider.name+'-items')
+        self.mongo = Mongo('pycrawler', spider.name+'-items')
 
     def setargs(self, args):
         if not isinstance(args, dict):
             raise PersistException('Args must be a dict')
         for key, value in args.iteritems():
             self.args[key] = value
-        self.mongo.db = self.args['db']
-        self.mongo.coll = self.args['collection']
+        self.mongo.database = self.args['db']
+        self.mongo.collection = self.args['collection']
 
     def __len__(self):
         return self.mongo.count()
@@ -65,11 +66,15 @@ class MongoPersist(Persist):
     def save(self, items):
         try:
             if isinstance(items, list):
-                items = [x.persistable() for x in items]
-                map(self.mongo.insert, items)
-            elif isinstance(items, Item):
-                self.mongo.insert(items.persistable())
+                try:
+                    items = [x.tomongo() for x in items]
+                    map(self.mongo.insert, items)
+                except AttributeError:
+                    raise PersistException('Items must implement tomongo()')
             else:
-                raise PersistException('Items must implement persistable()')
+                try:
+                    self.mongo.insert(items.tomongo())
+                except AttributeError:
+                    raise PersistException('Items must implement tomongo()')
         except (AttributeError, TypeError) as e:
             raise PersistException('Database error: '+e.message)
