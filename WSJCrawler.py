@@ -16,15 +16,11 @@ SETTINGS = {'name': 'WSJCrawler',
                 {'name': 'IncSpider',
                  'scraper': {'name': 'DefaultScraper'},
                  'frontier': {'name': 'BFSFrontier'},
-                 'handlers': [{'name': 'WSJHandler'}],
-                 'persist': {'name': 'MongoPersist',
-                             'args': {'collection': 'wsj'}}},
+                 'handlers': [{'name': 'WSJHandler'}]},
                 {'name': 'WordSpider',
                  'scraper': {'name': 'DefaultScraper'},
                  'frontier': {'name': 'BFSFrontier'},
-                 'handlers': [{'name': 'WSJHandler'}],
-                 'persist': {'name': 'MongoPersist',
-                             'args': {'collection': 'wsj'}}}]}
+                 'handlers': [{'name': 'WSJHandler'}]}]}
 
 
 def loadkeywords(filename):
@@ -91,7 +87,7 @@ class Article(Document):
                  'keyword': str}
     given = ['title', 'url', 'date', 'tag', 'keyword']
     database = 'pycrawler'
-    collention = 'wsj'
+    collection = 'wsj'
 
     def __init__(self, title, url, date, tag, keyword):
         super(Article, self).__init__()
