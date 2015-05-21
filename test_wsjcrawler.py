@@ -48,7 +48,7 @@ class TestWSJHandler(TestCase):
         s1 = '<li class="listFirst"> 1-15 of 30</li>'
         s2 = '<li class="listFirst"> 16-30 of 30</li>'
         s3 = '<li class="listFirst"> 16-30 of 1,330</li>'
-        data = {'fromDate': '04/01/15', 'toDate': '04/30/15', 'page_no': ''}
+        data = {'fromDate': '04/01/15', 'toDate': '04/30/15', 'page_no': '', 'KEYWORDS': 'deflation'}
         url = DefaultScraper.encodeurl('POST', 'http://online.wsj.com/search/term.html?KEYWORDS=deflation', data)
         phase = h._parsepage(s1, url)
         self.assertEqual(2, phase.pages)

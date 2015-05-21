@@ -5,11 +5,11 @@ import time
 import math
 import urllib
 from unidecode import unidecode
-from pycrawler.persist import Item
 from pycrawler.handler import Handler
 from pycrawler.scraper import DefaultScraper
 from pycrawler.utils.tools import gethash
 from pycrawler.spider import Driver
+from mongojuice.document import Document
 
 SETTINGS = {'name': 'WSJCrawler',
             'spiders': [
@@ -56,7 +56,19 @@ def date2num(date):
     return ((2000 + int(parts[2])) * 100 + int(parts[0])) * 100 + int(parts[1])
 
 
-class Phase(Item):
+class Phase(Document):
+    structure = {'keyword': str,
+                 'total': int,
+                 'pages': int,
+                 'start': int,
+                 'end': int,
+                 'year': int,
+                 'month': int,
+                 '_id': int}
+    given = ['start', 'end', 'keyword', 'total']
+    database = 'pycrawler'
+    collection = 'wsj'
+
     def __init__(self, start, end, keyword, total):
         super(Phase, self).__init__()
         self.keyword = keyword
@@ -68,19 +80,19 @@ class Phase(Item):
         self.month = self.start % 10000 / 100
         self._id = gethash(str(self.year) + str(self.month) + str(keyword))
 
-    def persistable(self):
-        result = {'_id': self._id,
-                  'year': self.year,
-                  'month': self.month,
-                  'keyword': self.keyword,
-                  'total': self.total,
-                  'pages': self.pages,
-                  'start': self.start,
-                  'end': self.end}
-        return result
 
+class Article(Document):
+    structure = {'_id': int,
+                 'title': str,
+                 'url': str,
+                 'date': str,
+                 'datenum': int,
+                 'tag': str,
+                 'keyword': str}
+    given = ['title', 'url', 'date', 'tag', 'keyword']
+    database = 'pycrawler'
+    collention = 'wsj'
 
-class Article(Item):
     def __init__(self, title, url, date, tag, keyword):
         super(Article, self).__init__()
         self._id = gethash(title + date + keyword)
@@ -96,16 +108,6 @@ class Article(Item):
             return date
         else:
             return time.strftime("%m/%d/%y", time.localtime())
-
-    def persistable(self):
-        result = {'_id': self._id,
-                  'title': self.title,
-                  'url': self.url,
-                  'date': self.date,
-                  'datenum': self.datenum,
-                  'tag': self.tag,
-                  'keyword': self.keyword}
-        return result
 
 
 @Handler.register
