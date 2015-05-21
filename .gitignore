@@ -3,7 +3,7 @@
 #MAC system files
 .DS_Store
 venv/
-
+mongojuice/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
