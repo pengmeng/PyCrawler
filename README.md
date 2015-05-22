@@ -20,6 +20,8 @@ Get Started
 
 ### Install
 ``` shell
+> git clone https://github.com/pengmeng/mongojuice.git
+> pip install ./mongojuice/
 > pip install -r requirement.txt
 ```
 
