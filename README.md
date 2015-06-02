@@ -84,3 +84,9 @@ Thanks
  - pymongo
  - redis
  - Unidecode
+
+ToDo
+---------------------
+ - [ ] Notification
+ - [ ] Extract configuration
+ - [ ] Add html parser template
