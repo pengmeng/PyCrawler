@@ -21,7 +21,7 @@ class Frontier(object):
             raise FrontierException('Must register Frontier with class name')
 
     @staticmethod
-    def getFrontier(name):
+    def get(name):
         if name in Frontier.Dict:
             return Frontier.Dict[name]
         else:

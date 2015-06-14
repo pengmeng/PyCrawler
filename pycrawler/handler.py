@@ -20,7 +20,7 @@ class Handler(object):
             raise HandlerException('Must register Handler with class name')
 
     @staticmethod
-    def getHandler(name):
+    def get(name):
         if name in Handler.Dict:
             return Handler.Dict[name]
         else:

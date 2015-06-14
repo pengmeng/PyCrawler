@@ -12,9 +12,9 @@ class TestScraper(TestCase):
         self.assertEqual(DefaultScraper, Scraper.Dict['DefaultScraper'])
 
     def test_getScraper(self):
-        self.assertRaises(ScraperException, Scraper.getScraper, 'None')
-        self.assertEqual(DefaultScraper, Scraper.getScraper('DefaultScraper'))
-        self.assertIsInstance(Scraper.getScraper('DefaultScraper')(SpiderTest('testspider')), DefaultScraper)
+        self.assertRaises(ScraperException, Scraper.get, 'None')
+        self.assertEqual(DefaultScraper, Scraper.get('DefaultScraper'))
+        self.assertIsInstance(Scraper.get('DefaultScraper')(SpiderTest('testspider')), DefaultScraper)
 
 
 class TestDefaultScraper(TestCase):

@@ -19,3 +19,7 @@ class FrontierException(PyCrawlerException):
 
 class PersistException(PyCrawlerException):
     pass
+
+
+class NotifierException(PyCrawlerException):
+    pass

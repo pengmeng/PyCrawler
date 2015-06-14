@@ -7,7 +7,7 @@ from test_scraper import SpiderTest
 
 class TestBFSFrontier(TestCase):
     def test_setargs(self):
-        f = Frontier.getFrontier('BFSFrontier')(SpiderTest('testspider'))
+        f = Frontier.get('BFSFrontier')(SpiderTest('testspider'))
         args = {'rules': ['^http://', '[0-9]*']}
         f.setargs(args)
         self.assertEqual(2, len(f.args['rules']))
@@ -15,7 +15,7 @@ class TestBFSFrontier(TestCase):
         self.assertRaises(FrontierException, f.setargs, args)
 
     def test_add(self):
-        f = Frontier.getFrontier('BFSFrontier')(SpiderTest('testspider'))
+        f = Frontier.get('BFSFrontier')(SpiderTest('testspider'))
         urls = ['http://www.sample{0}.com'.format(x) for x in xrange(5)]
         f.add(urls[0])
         f.add(urls[1:])
@@ -23,7 +23,7 @@ class TestBFSFrontier(TestCase):
             self.assertTrue(each in f)
 
     def test__addone(self):
-        f = Frontier.getFrontier('BFSFrontier')(SpiderTest('testspider'))
+        f = Frontier.get('BFSFrontier')(SpiderTest('testspider'))
         url = 'http://www.google.com'
         f._addone(url)
         self.assertTrue(url in f)
@@ -32,7 +32,7 @@ class TestBFSFrontier(TestCase):
         pass
 
     def test__nextone(self):
-        f = Frontier.getFrontier('BFSFrontier')(SpiderTest('testspider'))
+        f = Frontier.get('BFSFrontier')(SpiderTest('testspider'))
         before = len(f)
         if before == 0:
             f.add('url-for-test-nextone')
@@ -45,7 +45,7 @@ class TestBFSFrontier(TestCase):
         self.assertTrue(f.isVisited(item))
 
     def test__nextall(self):
-        f = Frontier.getFrontier('BFSFrontier')(SpiderTest('testspider'))
+        f = Frontier.get('BFSFrontier')(SpiderTest('testspider'))
         before = f.filter.count
         items = f._nextall()
         after = f.filter.count
@@ -56,14 +56,14 @@ class TestBFSFrontier(TestCase):
                 self.assertTrue(f.isVisited(each))
 
     def test_validate(self):
-        f = Frontier.getFrontier('BFSFrontier')(SpiderTest('testspider'))
+        f = Frontier.get('BFSFrontier')(SpiderTest('testspider'))
         args = {'rules': [
             '((http|ftp|https)://)(([a-zA-Z0-9\._-]+\.[a-zA-Z]{2,6})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\&%_\./-~-]*)?']}
         f.setargs(args)
         self.assertTrue(f.validate('http://www.baidu.com'))
 
     def test_clean(self):
-        f = Frontier.getFrontier('BFSFrontier')(SpiderTest('testspider'))
+        f = Frontier.get('BFSFrontier')(SpiderTest('testspider'))
         f.clean('todo', 'visited')
         self.assertEqual(0, len(f))
         self.assertEqual(0, f.redis.llen(f.visited))
@@ -77,7 +77,7 @@ class TestBFSFrontier(TestCase):
         self.assertEqual(1, len(f))
 
     def test__feedfilter(self):
-        f = Frontier.getFrontier('BFSFrontier')(SpiderTest('testspider'))
+        f = Frontier.get('BFSFrontier')(SpiderTest('testspider'))
         f.clean('todo', 'visited')
         f.redis.rpush(f.visited, 'sample1')
         f.redis.rpush(f.visited, 'sample2')

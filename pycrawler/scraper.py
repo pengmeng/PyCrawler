@@ -49,7 +49,7 @@ class Scraper(object):
             raise ScraperException('Must register scraper with class name')
 
     @staticmethod
-    def getScraper(name):
+    def get(name):
         if name in Scraper.Dict:
             return Scraper.Dict[name]
         else:

@@ -32,14 +32,14 @@ class Spider(Thread):
             self.logger = Logger(self.name)
             self.debug = config.get('debug', True)
             self.logger.info(self.name, 'Start building...')
-            self.scraper = Scraper.getScraper(config['scraper']['name'])(self)
+            self.scraper = Scraper.get(config['scraper']['name'])(self)
             if 'args' in config['scraper']:
                 self.scraper.setargs(config['scraper']['args'])
-            self.frontier = Frontier.getFrontier(config['frontier']['name'])(self)
+            self.frontier = Frontier.get(config['frontier']['name'])(self)
             if 'args' in config['frontier']:
                 self.frontier.setargs(config['frontier']['args'])
             for each in config['handlers']:
-                handler = Handler.getHandler(each['name'])(self)
+                handler = Handler.get(each['name'])(self)
                 if 'args' in each:
                     handler.setargs(each['args'])
                 self.handlers.append(handler)
