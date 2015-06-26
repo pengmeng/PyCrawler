@@ -19,7 +19,7 @@ class Server(Thread):
             self.run()
 
     def run(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s = socket.socket()
         try:
             s.bind((self.host, self.port))
             s.listen(5)
@@ -47,7 +47,7 @@ class Server(Thread):
     def stop(self):
         if self.keep:
             self.keep = False
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s = socket.socket()
             try:
                 s.connect((self.host, self.port))
                 s.send('')
@@ -63,18 +63,18 @@ class Client(object):
         self.port = port
 
     def tell(self, message, wait=True):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s = socket.socket()
         response = None
         try:
             s.connect((self.host, self.port))
             s.sendall(message)
-            response = self.receive(s) if wait else None
+            response = self._receive(s) if wait else None
         except socket.error as e:
             print(e)
         finally:
             s.close()
         return response
 
-    def receive(self, s):
+    def _receive(self, s):
         data = s.recv(1024)
         return data
