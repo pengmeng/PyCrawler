@@ -26,7 +26,7 @@ class TestSpider(TestCase):
     def test_run(self):
         sp = Spider(SPIDER)
         sp.frontier.clean('todo', 'visited')
-        url = ['http://www.google.com', 'http://www.baidu.com']
+        url = ['http://www.baidu.com', 'http://www.zhihu.com']
         sp.addtask(url)
         sp.run()
         self.assertEqual(0, len(sp.frontier))
@@ -58,7 +58,7 @@ class TestDriver(TestCase):
     def test_getspider(self):
         d = Driver(DRIVER)
         self.assertIsInstance(d.getspider('Spider1'), Spider)
-        self.assertRaises(PyCrawlerException, d.getspider, 'none')
+        self.assertIsNone(d.getspider('none'))
         del d
 
     def test_addtask(self):
@@ -69,7 +69,6 @@ class TestDriver(TestCase):
         d.addtask('Spider1', 'http://www.nevervisited.com')
         after = len(s.frontier)
         self.assertEqual(1, after-before)
-        self.assertRaises(PyCrawlerException, d.addtask, 'none', 'none')
         s.frontier.clean('todo', 'visited')
         del d
 
@@ -77,7 +76,7 @@ class TestDriver(TestCase):
         d = Driver(DRIVER)
         d.getspider('Spider1').frontier.clean('todo', 'visited')
         d.getspider('Spider2').frontier.clean('todo', 'visited')
-        urls = ['http://www.google.com', 'http://www.baidu.com', 'http://www.zhihu.com']
+        urls = ['http://www.baidu.com', 'http://www.zhihu.com', 'http://www.renren.com']
         d.addtask('Spider1', urls)
         d.addtask('Spider2', urls[0])
         d.start()

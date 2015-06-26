@@ -21,13 +21,13 @@ class TestDefaultScraper(TestCase):
     def test_fetchone(self):
         sp = SpiderTest('testspider')
         s = DefaultScraper(sp)
-        _, html = s.fetchone('http://www.google.com')
+        _, html = s.fetchone('http://www.baidu.com')
         self.assertNotEqual(0, len(html))
 
     def test_fetch(self):
         sp = SpiderTest('testspider')
         s = DefaultScraper(sp)
-        results = s.fetch(['http://www.google.com',
+        results = s.fetch(['http://www.renren.com',
                            'http://www.baidu.com',
                            'http://www.zhihu.com'])
         self.assertEqual(3, len(results))
