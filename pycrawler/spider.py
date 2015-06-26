@@ -171,7 +171,10 @@ class Driver(object):
 
     def addtask(self, spidername, task):
         spider = self.getspider(spidername)
-        spider.addtask(task)
+        if spider:
+            spider.addtask(task)
+        else:
+            raise PyCrawlerException('No spider named '+spidername)
 
     def start(self):
         self._debug('Starting...')
