@@ -22,7 +22,7 @@ class Spider(Thread):
         self.debug = debug
         self._build(config)
         self.keep = True
-        self.pause = False
+        self.ispaused = False
 
     def _build(self, config):
         try:
@@ -66,13 +66,8 @@ class Spider(Thread):
                             item.save()
                     elif isinstance(items, Document):
                         items.save()
-            self._pause()
+            self._checkpause()
         self.logger.warning(self.name, 'Crawling finished!')
-
-    def retire(self):
-        self.pause = False
-        self.keep = False
-        self.logger.info(self.name, 'Stopped by driver')
 
     def recover(self, filename):
         if not os.path.exists(filename):
@@ -102,20 +97,41 @@ class Spider(Thread):
         self.frontier.clean(*args)
 
     def report(self):
+        s = self.summary()
         results = [self.name+' report:',
-                   'Todo urls: {0}'.format(len(self.frontier)),
-                   'Visited urls: {0}'.format(self.frontier.visitednum()),
-                   'Failed urls: {0}'.format('Not supported')]
+                   'Todo urls: {0}'.format(s['todo']),
+                   'Visited urls: {0}'.format(s['visited']),
+                   'Failed urls: {0}'.format(s['failed'])]
         for each in results:
             print(each)
 
-    def _pause(self):
-        if self.pause:
+    def summary(self):
+        result = {'todo': len(self.frontier),
+                  'visited': len(self.frontier.visitednum()),
+                  'failed': 'Not supported'}
+        return result
+
+    def pause(self):
+        if self.isAlive() and not self.ispaused:
+            self.ispaused = True
+
+    def resume(self):
+        if self.isAlive() and self.ispaused:
+            self.ispaused = False
+
+    def retire(self):
+        if self.isAlive():
+            self.logger.info(self.name, 'Stopped by driver')
+            self.ispaused = False
+            self.keep = False
+
+    def _checkpause(self):
+        if self.ispaused:
             self.logger.info(self.name, 'Paused by driver')
-            while True:
-                if not self.pause:
-                    self.logger.info(self.name, 'Resume...')
-                    break
+            while self.ispaused:
+                pass
+            else:
+                self.logger.info(self.name, 'Resumed by driver')
 
 
 class Driver(object):
@@ -148,36 +164,35 @@ class Driver(object):
             raise PyCrawlerException('Only accept object of Spider')
 
     def getspider(self, name):
-        try:
-            spider = self.spiders[name]
-            return spider
-        except KeyError:
-            raise PyCrawlerException('No spider named \''+name+'\'')
+        return self.spiders.get(name)
+
+    def getspiders(self):
+        return self.spiders.itervalues()
 
     def addtask(self, spidername, task):
         spider = self.getspider(spidername)
         spider.addtask(task)
 
     def start(self):
-        self._debug('Start spiders...')
-        for spider in self.spiders.itervalues():
-            spider.start()
+        self._debug('Starting...')
+        # for spider in self.spiders.itervalues():
+        #     spider.start()
+        map(lambda s: s.start(), self.getspiders())
 
     def pause(self):
-        for spider in self.spiders.itervalues():
-            if spider.isAlive():
-                spider.pause = True
+        # for spider in self.spiders.itervalues():
+        #     spider.pause()
+        map(lambda s: s.pause(), self.getspiders())
 
     def resume(self):
         for spider in self.spiders.itervalues():
-            if spider.isAlive():
-                spider.pause = False
+            spider.resume()
+        map(lambda s: s.resume(), self.getspiders())
 
     def stop(self):
-        self._debug('Stop spiders...')
-        for spider in self.spiders.itervalues():
-            if spider.isAlive():
-                spider.retire()
+        # for spider in self.spiders.itervalues():
+        #     spider.retire()
+        map(lambda s: s.retire(), self.getspiders())
         self._debug('Shut down.')
 
     def recover(self, spidername, filename):
