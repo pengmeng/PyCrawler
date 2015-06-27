@@ -178,23 +178,15 @@ class Driver(object):
 
     def start(self):
         self._debug('Starting...')
-        # for spider in self.spiders.itervalues():
-        #     spider.start()
         map(lambda s: s.start(), self.getspiders())
 
     def pause(self):
-        # for spider in self.spiders.itervalues():
-        #     spider.pause()
         map(lambda s: s.pause(), self.getspiders())
 
     def resume(self):
-        for spider in self.spiders.itervalues():
-            spider.resume()
         map(lambda s: s.resume(), self.getspiders())
 
     def stop(self):
-        # for spider in self.spiders.itervalues():
-        #     spider.retire()
         map(lambda s: s.retire(), self.getspiders())
         self._debug('Shut down.')
 
