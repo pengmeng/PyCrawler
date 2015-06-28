@@ -107,7 +107,7 @@ class Spider(Thread):
 
     def summary(self):
         result = {'todo': len(self.frontier),
-                  'visited': len(self.frontier.visitednum()),
+                  'visited': self.frontier.visitednum(),
                   'failed': 'Not supported'}
         return result
 

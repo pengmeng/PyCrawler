@@ -69,7 +69,7 @@ class Client(object):
             s.connect((self.host, self.port))
             s.sendall(message)
             response = self._receive(s) if wait else None
-        except socket.error as e:
+        except (socket.error, KeyboardInterrupt) as e:
             print(e)
         finally:
             s.close()
