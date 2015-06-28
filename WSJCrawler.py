@@ -9,6 +9,7 @@ from pycrawler.handler import Handler
 from pycrawler.scraper import DefaultScraper
 from pycrawler.utils.tools import gethash
 from pycrawler.spider import Driver
+from pycrawler.monitor import Monitor
 from mongojuice.document import Document
 
 SETTINGS = {'name': 'WSJCrawler',
@@ -188,7 +189,7 @@ class WSJHandler(Handler):
 
 
 def main(option, *args):
-    if option not in ['start', 'report', 'extract', 'recover']:
+    if option not in ['start', 'report', 'extract', 'recover', 'debug']:
         print('Option not supported.')
         return
     if option == 'extract':
@@ -219,6 +220,9 @@ def main(option, *args):
             print('Usage: python WSJCrawler.py recover spidername urlfile')
         else:
             driver.recover(args[0], args[1])
+    elif option == 'debug':
+        monitor = Monitor(driver, 'localhost', 6270)
+        monitor.start()
 
 
 def generateseeds(keyword, year, month=None):
@@ -266,6 +270,7 @@ if __name__ == '__main__':
         print('   report:\t python WSJCrawler.py report')
         print('   extract:\t python WSJCrawler.py extract logfile outfile')
         print('   recover:\t python WSJCrawler.py recover spidername urlfile')
+        print('   debug:\t python WSJCrawler.py debug')
     elif len(sys.argv) == 2:
         main(sys.argv[1])
     else:
