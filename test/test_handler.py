@@ -1,7 +1,7 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 import os
 from unittest import TestCase
-from pycrawler.scraper import DefaultScraper
 from pycrawler.handler import Handler
 from pycrawler.utils.tools import gethash
 from test_scraper import SpiderTest

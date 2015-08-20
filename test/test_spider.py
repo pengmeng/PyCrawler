@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 import time
 from unittest import TestCase
@@ -68,7 +69,7 @@ class TestDriver(TestCase):
         before = len(s.frontier)
         d.addtask('Spider1', 'http://www.nevervisited.com')
         after = len(s.frontier)
-        self.assertEqual(1, after-before)
+        self.assertEqual(1, after - before)
         s.frontier.clean('todo', 'visited')
         del d
 

@@ -20,13 +20,17 @@ Get Started
 
 ### Install
 ``` shell
+> git clone git@github.com:pengmeng/PyCrawler.git
+> cd PyCrawler
 > git clone https://github.com/pengmeng/mongojuice.git
 > pip install ./mongojuice/
 > pip install -r requirement.txt
+> pip install .
 ```
 
 ### Create a crawler
-The easist way to create a crawler is using a configuration dictionary.
+The easiest way to create a crawler is using a configuration dictionary.
+
 ``` python
 DRIVER = {'name': 'FirstCrawler',
           'spiders': [
@@ -39,6 +43,7 @@ DRIVER = {'name': 'FirstCrawler',
 ```
 This dictionary create a driver with one spider and using default arguments.
 Then build and run this driver by:
+
 ``` python
 import time
 from pycrawler.spider import Driver
@@ -49,7 +54,9 @@ driver.start()
 time.sleep(2)
 driver.stop()
 ```
+
 You will get output like this:
+
 ```
 2015-04-24 20:41:23 [FirstCrawler] Start building...
 2015-04-24 20:41:23 [Spider] Start building...
@@ -74,7 +81,7 @@ You will get output like this:
 ```
 
 ### Demo (Customize)
-WSJCrawler.py is a demo project for wall street journal website crawling. You can add customized scraper, handler or other class by decorator provided in related super class. Another important concept is item. You can create new item by extending super class Item. All these features can be found in the demo.
+Coming soon...
 
 Thanks
 ---------------------
@@ -82,11 +89,14 @@ Thanks
  - eventlet
  - pybloom
  - pymongo
- - redis
+ - redis (redis-py)
  - Unidecode
 
 ToDo
 ---------------------
- - [ ] Notification
+ - [ ] RediSugar - A redis-py wrapper
+ - [ ] Refactor frontier.py
+ - [ ] Refactor to Python 3.x
+ - [x] Notification
  - [ ] Extract configuration
  - [ ] Add html parser template

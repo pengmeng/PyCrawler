@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 from unittest import TestCase
 from pycrawler.frontier import Frontier
@@ -41,7 +42,7 @@ class TestBFSFrontier(TestCase):
         after = len(f)
         self.assertIsInstance(item, str)
         self.assertEqual(1, f.filter.count)
-        self.assertEqual(1, before-after)
+        self.assertEqual(1, before - after)
         self.assertTrue(f.isVisited(item))
 
     def test__nextall(self):
@@ -50,7 +51,7 @@ class TestBFSFrontier(TestCase):
         items = f._nextall()
         after = f.filter.count
         self.assertEqual(0, len(f))
-        self.assertEqual(len(items), after-before)
+        self.assertEqual(len(items), after - before)
         if items:
             for each in items:
                 self.assertTrue(f.isVisited(each))
