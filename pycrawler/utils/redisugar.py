@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 import redis
 from pycrawler.exception import PyCrawlerException

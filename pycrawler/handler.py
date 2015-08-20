@@ -1,4 +1,5 @@
-__author__ = 'mengpeng'
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
 import os
 from bs4 import BeautifulSoup
 from pycrawler.exception import HandlerException
@@ -8,7 +9,7 @@ from pycrawler.utils.tools import gethash
 class Handler(object):
     Dict = {}
 
-    def __init__(self, spider):
+    def __init__(self):
         pass
 
     @staticmethod
@@ -36,7 +37,7 @@ class Handler(object):
 @Handler.register
 class TempHandler(Handler):
     def __init__(self, spider):
-        super(TempHandler, self).__init__(spider)
+        super(TempHandler, self).__init__()
         self._spider = spider
         self.args = {'path': './tmp/'+spider.name+'/',
                      'overwrite': True}
@@ -83,19 +84,20 @@ class TempHandler(Handler):
 class LinkHandler(Handler):
 
     def __init__(self, spider):
-        super(LinkHandler, self).__init__(spider)
+        super(LinkHandler, self).__init__()
         self.spider = spider
 
     def setargs(self, args):
         pass
 
     def parse(self, html, url):
-        bs = BeautifulSoup(html)
+        soup = BeautifulSoup(html)
         result = []
-        for link in bs.find_all('a', href=True):
+        for link in soup.find_all('a', href=True):
             href = link.get('href')
             if href and self._satisfy(href):
-                result.append(str(href))
+                result.append(href)
+                # result.append(str(href))
         result = list(set(result))
         self.spider.addtask(result)
 

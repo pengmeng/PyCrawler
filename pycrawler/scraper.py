@@ -1,8 +1,10 @@
-__author__ = 'mengpeng'
-import eventlet
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
 import ast
 import urllib
 import socket
+
+import eventlet
 from eventlet.green import urllib2
 from pycrawler.exception import ScraperException
 
@@ -37,7 +39,7 @@ def encodeurl(method, url, data=None):
 class Scraper(object):
     Dict = {}
 
-    def __init__(self, spider):
+    def __init__(self):
         pass
 
     @staticmethod
@@ -66,7 +68,7 @@ class Scraper(object):
 class DefaultScraper(Scraper):
 
     def __init__(self, spider):
-        super(DefaultScraper, self).__init__(spider)
+        super(DefaultScraper, self).__init__()
         self._spider = spider
         self.logger = spider.logger
         self.name = spider.name+'-Scraper'
@@ -84,8 +86,8 @@ class DefaultScraper(Scraper):
         data = urllib.urlencode(data) if data else data
         try:
             res = urllib2.urlopen(url=url, data=data, timeout=self.args['timeout'])
-        except socket.timeout as e:
-            self.logger.error(self.name, e.message+': '+oriurl)
+        except socket.timeout as ex:
+            self.logger.error(self.name, ex.message+': '+oriurl)
             html = None
         except (urllib2.HTTPError, IOError):
             self.logger.error(self.name, 'IOError: '+oriurl)

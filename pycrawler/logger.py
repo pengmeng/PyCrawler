@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
-import os
 import logging
 import logging.config
+
+import os
 from pycrawler.utils.tools import datestamp
 
 LoggingConfig = {
@@ -15,7 +17,7 @@ LoggingConfig = {
     },
     'handlers': {
         'Default-file': {
-            'filename': './log/Default-'+datestamp()+'.log',
+            'filename': './log/Default-' + datestamp() + '.log',
             'level': 'WARNING',
             'class': 'logging.FileHandler',
             'formatter': 'default'
@@ -38,23 +40,24 @@ LoggingConfig = {
 class Logger(object):
     def __init__(self, name):
         self.name = name
-        self._logger = logging.getLogger(name+'-logger')
+        self._logger = logging.getLogger(name + '-logger')
 
     @staticmethod
     def register(modulename, consolelog=True, consolelevel='DEBUG', filelog=True, filelevel='WARNING'):
-        name = modulename+'-logger'
+        name = modulename + '-logger'
         LoggingConfig['loggers'][name] = {'handlers': [], 'level': 'DEBUG'}
         if filelog:
-            LoggingConfig['handlers'][modulename+'-file'] = {'filename': './log/'+modulename+'-'+datestamp()+'.log',
-                                                             'level': filelevel,
-                                                             'class': 'logging.FileHandler',
-                                                             'formatter': 'default'}
-            LoggingConfig['loggers'][name]['handlers'].append(modulename+'-file')
+            LoggingConfig['handlers'][modulename + '-file'] = {
+                'filename': './log/' + modulename + '-' + datestamp() + '.log',
+                'level': filelevel,
+                'class': 'logging.FileHandler',
+                'formatter': 'default'}
+            LoggingConfig['loggers'][name]['handlers'].append(modulename + '-file')
         if consolelog:
-            LoggingConfig['handlers'][modulename+'-console'] = {'level': consolelevel,
-                                                                'class': 'logging.StreamHandler',
-                                                                'formatter': 'default'}
-            LoggingConfig['loggers'][name]['handlers'].append(modulename+'-console')
+            LoggingConfig['handlers'][modulename + '-console'] = {'level': consolelevel,
+                                                                  'class': 'logging.StreamHandler',
+                                                                  'formatter': 'default'}
+            LoggingConfig['loggers'][name]['handlers'].append(modulename + '-console')
 
     @staticmethod
     def load():
@@ -75,4 +78,4 @@ class Logger(object):
         self._logger.error(self._fmt(location, message))
 
     def _fmt(self, location, message):
-        return '['+location+'] '+message
+        return '[' + location + '] ' + message

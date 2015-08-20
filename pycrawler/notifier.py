@@ -1,12 +1,14 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 import smtplib
-from exception import NotifierException
+
+from pycrawler.exception import NotifierException
 
 
 class Notifier(object):
     Dict = {}
 
-    def __init__(self, spider):
+    def __init__(self):
         pass
 
     @staticmethod
@@ -33,7 +35,7 @@ class Notifier(object):
 
 class EmailNotifier(Notifier):
     def __init__(self, spider):
-        super(EmailNotifier, self).__init__(spider)
+        super(EmailNotifier, self).__init__()
         self._spider = spider
         self.logger = spider.logger
         self.name = spider.name + '-Notifier'
@@ -56,7 +58,7 @@ class EmailNotifier(Notifier):
         port = self.args['port']
         FROM = user
         TO = receiver if isinstance(receiver, list) else [receiver]
-        message = '\From: {0}\nTo: {1}\nSubject: {2}\n\n{3}'.format(FROM, ', '.join(TO), subject, content)
+        message = '\nFrom: {0}\nTo: {1}\nSubject: {2}\n\n{3}'.format(FROM, ', '.join(TO), subject, content)
         try:
             server = smtplib.SMTP(server, port)
             server.ehlo()

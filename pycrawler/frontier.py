@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 import re
 from pybloom import ScalableBloomFilter
@@ -9,7 +10,7 @@ from redis.exceptions import ResponseError
 class Frontier(object):
     Dict = {}
 
-    def __init__(self, spider):
+    def __init__(self):
         pass
 
     @staticmethod
@@ -61,7 +62,7 @@ class Frontier(object):
 @Frontier.register
 class BFSFrontier(Frontier):
     def __init__(self, spider):
-        super(BFSFrontier, self).__init__(spider)
+        super(BFSFrontier, self).__init__()
         self._spider = spider
         self.args = {'rules': [],
                      'order': 'bfs'}

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 import os
 from threading import Thread
@@ -45,7 +46,7 @@ class Spider(Thread):
                 self.handlers.append(handler)
             self.logger.info(self.name, 'Build successful!')
         except KeyError as e:
-            raise PyCrawlerException('Key \''+e.args[0]+'\' missing in config dict')
+            raise PyCrawlerException('Key \'' + e.args[0] + '\' missing in config dict')
 
     def reload(self, config):
         self._build(config)
@@ -73,7 +74,7 @@ class Spider(Thread):
         if not os.path.exists(filename):
             self.logger.info(self.name, 'File {0} not found'.format(filename))
         else:
-            self.logger.info(self.name, 'Recovering from '+filename)
+            self.logger.info(self.name, 'Recovering from ' + filename)
             count = 0
             with open(filename, 'r') as f:
                 for each in f.readlines():
@@ -98,7 +99,7 @@ class Spider(Thread):
 
     def report(self):
         s = self.summary()
-        results = [self.name+' report:',
+        results = [self.name + ' report:',
                    'Todo urls: {0}'.format(s['todo']),
                    'Visited urls: {0}'.format(s['visited']),
                    'Failed urls: {0}'.format(s['failed'])]
@@ -155,7 +156,7 @@ class Driver(object):
                 self.addspider(spider)
             self._debug('Build successful!')
         except KeyError as e:
-            raise PyCrawlerException('Key \''+e.args[0]+'\' missing in config dict')
+            raise PyCrawlerException('Key \'' + e.args[0] + '\' missing in config dict')
 
     def addspider(self, spider):
         if isinstance(spider, Spider):
@@ -174,7 +175,7 @@ class Driver(object):
         if spider:
             spider.addtask(task)
         else:
-            raise PyCrawlerException('No spider named '+spidername)
+            raise PyCrawlerException('No spider named ' + spidername)
 
     def start(self):
         self._debug('Starting...')
@@ -197,7 +198,7 @@ class Driver(object):
         spider.report()
 
     def report(self):
-        print(self.name+' report:\n')
+        print(self.name + ' report:\n')
         for spider in self.spiders.itervalues():
             spider.report()
             print('')

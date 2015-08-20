@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 import json
 import copy
 from threading import Thread
+
 from utils.tcpecho import Server
 
 
@@ -43,7 +45,7 @@ class _Handler(Thread):
             cmd = json.loads(self.data)
             return cmd
         except ValueError:
-            print('Parse json string failed, discard: '+self.data)
+            print('Parse json string failed, discard: ' + self.data)
             self._response('{"error": "Bad Request", "reason": "broken json string"}')
             self._exit()
 
@@ -61,7 +63,7 @@ class _Handler(Thread):
         elif _type == 'do':
             result = self._execdo(_action, _args)
         else:
-            result = '{"error": "Argument Error", "reason": "unknown request type:'+_type+'"}'
+            result = '{"error": "Argument Error", "reason": "unknown request type:' + _type + '"}'
         self._response(result)
 
     def _execask(self, _action, _args):
