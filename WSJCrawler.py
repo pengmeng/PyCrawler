@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 import sys
 import re
@@ -70,7 +71,7 @@ class Phase(Document):
         super(Phase, self).__init__()
         self.keyword = keyword
         self.total = total
-        self.pages = int(math.ceil(float(total)/15))
+        self.pages = int(math.ceil(float(total) / 15))
         self.start = date2num(start)
         self.end = date2num(end)
         self.year = self.start / 10000
@@ -110,10 +111,10 @@ class Article(Document):
 @Handler.register
 class WSJHandler(Handler):
     def __init__(self, spider):
-        super(WSJHandler, self).__init__(spider)
+        super(WSJHandler, self).__init__()
         self._spider = spider
         self.logger = spider.logger
-        self.name = spider.name+'-Handler'
+        self.name = spider.name + '-Handler'
         self.args = {'debug': True,
                      'log': True,
                      'logfile': 'WSJHandler.log'}
@@ -125,7 +126,7 @@ class WSJHandler(Handler):
     def parse(self, html, url):
         notfound = 'class="src_no_results"'
         if notfound in html:
-            self.logger.warning(self.name, 'No results in '+url)
+            self.logger.warning(self.name, 'No results in ' + url)
             return None
         pagep = re.compile('<li class="listFirst">[0-9of,\-\s]*</li>')
         titlep = re.compile('<a class="mjLinkItem.*</a>')
@@ -133,13 +134,13 @@ class WSJHandler(Handler):
         datep = re.compile('<li class="metadataType-timeStamp first">[0-9/]*')
         page = pagep.findall(html)
         if len(page) != 1:
-            self.logger.error(self.name, 'Page index not found in '+url)
+            self.logger.error(self.name, 'Page index not found in ' + url)
             return None
         titles = titlep.findall(html)
         dates = datep.findall(html)
         tags = tagp.findall(html)
         if len(titles) != len(tags):
-            tags = ['']*len(titles)
+            tags = [''] * len(titles)
         if len(titles) == len(dates) == len(tags):
             phase = self._parsepage(page[0], url)
             result = [phase] if phase else []
@@ -152,11 +153,11 @@ class WSJHandler(Handler):
                 result.append(article)
             return result
         else:
-            self.logger.error(self.name, 'Item numbers not match in '+url)
+            self.logger.error(self.name, 'Item numbers not match in ' + url)
             return None
 
     def _parsepage(self, page, oriurl):
-        page = page[page.index('> ')+2:-5].strip()
+        page = page[page.index('> ') + 2:-5].strip()
         if ',' in page:
             page = page.replace(',', '')
         if page.startswith('1-'):
@@ -165,7 +166,7 @@ class WSJHandler(Handler):
             total = int(page.split(' of ')[1])
             phase = Phase(data['fromDate'], data['toDate'], keyword, total)
             urls = []
-            for i in xrange(2, phase.pages+1):
+            for i in xrange(2, phase.pages + 1):
                 data['page_no'] = i
                 urls.append(DefaultScraper.encodeurl('POST', url, data))
             self._spider.addtask(urls)
@@ -176,8 +177,8 @@ class WSJHandler(Handler):
         return data['KEYWORDS']
 
     def _parsetitle(self, ori):
-        href = ori[ori.index('href="')+6:ori.index('">')]
-        title = ori[ori.index('">')+2:-4]
+        href = ori[ori.index('href="') + 6:ori.index('">')]
+        title = ori[ori.index('">') + 2:-4]
         title = unidecode(title.decode('utf-8'))
         return href, title
 
@@ -185,7 +186,7 @@ class WSJHandler(Handler):
         return ori[-8:]
 
     def _parsetag(self, ori):
-        return ori[ori.index('">')+2:-5] if ori != '' else ori
+        return ori[ori.index('">') + 2:-5] if ori != '' else ori
 
 
 def main(option, *args):
@@ -245,14 +246,14 @@ def generateseeds(keyword, year, month=None):
             ms = str(m) if m >= 10 else ('0' + str(m))
             d = lastday(y, m)
             ds = str(d) if d >= 10 else ('0' + str(d))
-            data['fromDate'] = ms+'/01/'+ys
-            data['toDate'] = ms+'/'+ds+'/'+ys
+            data['fromDate'] = ms + '/01/' + ys
+            data['toDate'] = ms + '/' + ds + '/' + ys
             urls.append(DefaultScraper.encodeurl('POST', base, data))
     return urls
 
 
 def extractlog(logfile, outfile):
-    print('Extracting urls from '+logfile)
+    print('Extracting urls from ' + logfile)
     with open(outfile, 'w') as outf:
         with open(logfile, 'r') as inf:
             for each in inf.readlines():

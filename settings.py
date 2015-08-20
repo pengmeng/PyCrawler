@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 
-#Example settings for building a single spider
-#If don't use 'args', default args will be used.
+# Example settings for building a single spider
+# If don't use 'args', default args will be used.
 SPIDER = {'name': 'MySpider',
           'debug': True,
           'scraper': {'name': 'DefaultScraper',
@@ -11,7 +12,7 @@ SPIDER = {'name': 'MySpider',
           'handlers': [{'name': 'TempHandler',
                         'args': {'path': './tmp/', 'overwrite': True}}]}
 
-#Example settings for building a driver with several spiders
+# Example settings for building a driver with several spiders
 DRIVER = {'name': 'MyCrawler',
           'debug': True,
           'spiders': [

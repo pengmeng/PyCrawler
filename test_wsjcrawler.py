@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 import unittest
 from unittest import TestCase
@@ -68,13 +69,6 @@ class TestWSJHandler(TestCase):
         data = {'fromDate': '04/01/15', 'toDate': '04/30/15', 'page_no': '', 'KEYWORDS': 'deflation'}
         url = DefaultScraper.encodeurl('POST', 'http://online.wsj.com/search/term.html?KEYWORDS=deflation', data)
         self.assertEqual('deflation', h._parsekeyword(url))
-
-    def test__parsetitle(self):
-        h = WSJHandler(SpiderTest('testspider'))
-        s = '<a class="mjLinkItem " href="http://blogs.wsj.com/moneybeat/2015/04/13/have-central-banks-learned-to-distinguish-good-from-bad-deflation/?KEYWORDS=deflation">Have Central Banks Learned to Distinguish \xe2\x80\x98Good\xe2\x80\x99 From \xe2\x80\x98Bad\xe2\x80\x99 Deflation?</a>'
-        href, title = h._parsetitle(s)
-        print(href)
-        print(title)
 
     def test__parsedate(self):
         h = WSJHandler(SpiderTest('testspider'))
