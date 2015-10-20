@@ -3,6 +3,8 @@ __author__ = 'mengpeng'
 from unittest import TestCase
 from pycrawler.scraper import Scraper
 from pycrawler.scraper import DefaultScraper
+from pycrawler.scraper import encodeurl
+from pycrawler.scraper import parseurl
 from pycrawler.exception import ScraperException
 from pycrawler.logger import Logger
 
@@ -38,9 +40,9 @@ class TestDefaultScraper(TestCase):
     def test_url(self):
         url = 'http://www.google.com'
         data = {'a': 1, 'b': 2, 'c': 3}
-        full = DefaultScraper.encodeurl('POST', url, data)
+        full = encodeurl('POST', url, data)
         self.assertTrue('<args>' in full)
-        url2, data2 = DefaultScraper.parseurl(full)
+        url2, data2 = parseurl(full)
         self.assertEqual(url, url2)
         self.assertEqual(data, data2)
 

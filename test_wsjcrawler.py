@@ -4,6 +4,8 @@ import unittest
 from unittest import TestCase
 from test.test_scraper import SpiderTest
 from WSJCrawler import *
+from pycrawler.scraper import encodeurl
+from pycrawler.scraper import parseurl
 
 
 class TestBasicFunc(TestCase):
@@ -27,7 +29,7 @@ class TestWSJHandler(TestCase):
     def test_parse(self):
         h = WSJHandler(SpiderTest('testspider'))
         data = {'fromDate': '04/01/15', 'toDate': '04/30/15', 'page_no': ''}
-        url = DefaultScraper.encodeurl('POST', 'http://online.wsj.com/search/term.html?KEYWORDS=deflation', data)
+        url = encodeurl('POST', 'http://online.wsj.com/search/term.html?KEYWORDS=deflation', data)
         with open('notfound.html') as f:
             html = f.read()
         self.assertIsNone(h.parse(html, url))
@@ -50,7 +52,7 @@ class TestWSJHandler(TestCase):
         s2 = '<li class="listFirst"> 16-30 of 30</li>'
         s3 = '<li class="listFirst"> 16-30 of 1,330</li>'
         data = {'fromDate': '04/01/15', 'toDate': '04/30/15', 'page_no': '', 'KEYWORDS': 'deflation'}
-        url = DefaultScraper.encodeurl('POST', 'http://online.wsj.com/search/term.html?KEYWORDS=deflation', data)
+        url = encodeurl('POST', 'http://online.wsj.com/search/term.html?KEYWORDS=deflation', data)
         phase = h._parsepage(s1, url)
         self.assertEqual(2, phase.pages)
         self.assertEqual(30, phase.total)
@@ -67,7 +69,7 @@ class TestWSJHandler(TestCase):
     def test__parsekeyword(self):
         h = WSJHandler(SpiderTest('testspider'))
         data = {'fromDate': '04/01/15', 'toDate': '04/30/15', 'page_no': '', 'KEYWORDS': 'deflation'}
-        url = DefaultScraper.encodeurl('POST', 'http://online.wsj.com/search/term.html?KEYWORDS=deflation', data)
+        url = encodeurl('POST', 'http://online.wsj.com/search/term.html?KEYWORDS=deflation', data)
         self.assertEqual('deflation', h._parsekeyword(url))
 
     def test__parsedate(self):

@@ -8,6 +8,8 @@ import urllib
 from unidecode import unidecode
 from pycrawler.handler import Handler
 from pycrawler.scraper import DefaultScraper
+from pycrawler.scraper import encodeurl
+from pycrawler.scraper import parseurl
 from pycrawler.utils.tools import gethash
 from pycrawler.spider import Driver
 from pycrawler.monitor import Monitor
@@ -161,19 +163,19 @@ class WSJHandler(Handler):
         if ',' in page:
             page = page.replace(',', '')
         if page.startswith('1-'):
-            url, data = DefaultScraper.parseurl(oriurl)
+            url, data = parseurl(oriurl)
             keyword = data['KEYWORDS']
             total = int(page.split(' of ')[1])
             phase = Phase(data['fromDate'], data['toDate'], keyword, total)
             urls = []
             for i in xrange(2, phase.pages + 1):
                 data['page_no'] = i
-                urls.append(DefaultScraper.encodeurl('POST', url, data))
+                urls.append(encodeurl('POST', url, data))
             self._spider.addtask(urls)
             return phase
 
     def _parsekeyword(self, oriurl):
-        _, data = DefaultScraper.parseurl(oriurl)
+        _, data = parseurl(oriurl)
         return data['KEYWORDS']
 
     def _parsetitle(self, ori):
@@ -248,7 +250,7 @@ def generateseeds(keyword, year, month=None):
             ds = str(d) if d >= 10 else ('0' + str(d))
             data['fromDate'] = ms + '/01/' + ys
             data['toDate'] = ms + '/' + ds + '/' + ys
-            urls.append(DefaultScraper.encodeurl('POST', base, data))
+            urls.append(encodeurl('POST', base, data))
     return urls
 
 
