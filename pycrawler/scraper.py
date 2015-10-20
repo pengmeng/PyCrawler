@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import ast
 import urllib
 import socket
+from cookielib import CookieJar
 
 import eventlet
 from eventlet.green import urllib2
@@ -14,12 +15,12 @@ def parseurl(url):
     if '<args>' in url:
         parts = url.split('<args>')
         if len(parts) != 2:
-            raise ScraperException('Wrong post url format: '+url)
+            raise ScraperException('Wrong post url format: ' + url)
         url = parts[0]
         try:
             data = ast.literal_eval(parts[1])
         except ValueError:
-            raise ScraperException('Wrong post args format: '+parts[1])
+            raise ScraperException('Wrong post args format: ' + parts[1])
     return url, data
 
 
@@ -33,14 +34,18 @@ def encodeurl(method, url, data=None):
     elif not data:
         return url
     else:
-        raise ScraperException('Unsupported http method: '+method)
+        raise ScraperException('Unsupported http method: ' + method)
 
 
 class Scraper(object):
     Dict = {}
 
     def __init__(self):
-        pass
+        self.logger = None
+        self.opener = None
+        self.name = None
+        self.args = None
+        self._spider = None
 
     @staticmethod
     def register(cls):
@@ -55,25 +60,7 @@ class Scraper(object):
         if name in Scraper.Dict:
             return Scraper.Dict[name]
         else:
-            raise ScraperException('No scraper class named '+name)
-
-    def setargs(self, args):
-        raise NotImplementedError
-
-    def fetch(self, *args):
-        raise NotImplementedError
-
-
-@Scraper.register
-class DefaultScraper(Scraper):
-
-    def __init__(self, spider):
-        super(DefaultScraper, self).__init__()
-        self._spider = spider
-        self.logger = spider.logger
-        self.name = spider.name+'-Scraper'
-        self.args = {'debug': True,
-                     'timeout': 10}
+            raise ScraperException('No scraper class named ' + name)
 
     def setargs(self, args):
         if not isinstance(args, dict):
@@ -82,21 +69,21 @@ class DefaultScraper(Scraper):
             self.args[key] = value
 
     def fetchone(self, oriurl):
-        url, data = DefaultScraper.parseurl(oriurl)
+        url, data = parseurl(oriurl)
         data = urllib.urlencode(data) if data else data
         try:
-            res = urllib2.urlopen(url=url, data=data, timeout=self.args['timeout'])
+            res = self.opener.open(url, data, self.args['timeout'])
         except socket.timeout as ex:
-            self.logger.error(self.name, ex.message+': '+oriurl)
+            self.logger.error(self.name, ex.message + ': ' + oriurl)
             html = None
         except (urllib2.HTTPError, IOError):
-            self.logger.error(self.name, 'IOError: '+oriurl)
+            self.logger.error(self.name, 'IOError: ' + oriurl)
             html = None
         else:
             html = res.read()
             res.close()
         if self.args['debug']:
-            self.logger.info(self._spider.name, 'Scraped: '+url)
+            self.logger.info(self._spider.name, 'Scraped: ' + url)
         return oriurl, html
 
     def fetch(self, urllist):
@@ -107,10 +94,42 @@ class DefaultScraper(Scraper):
                 results[url] = html
         return results
 
-    @staticmethod
-    def parseurl(url):
-        return parseurl(url)
 
-    @staticmethod
-    def encodeurl(method, url, data=None):
-        return encodeurl(method, url, data=data)
+@Scraper.register
+class DefaultScraper(Scraper):
+    def __init__(self, spider):
+        super(DefaultScraper, self).__init__()
+        self._spider = spider
+        self.logger = spider.logger
+        self.name = spider.name + '-Scraper'
+        self.opener = urllib2.build_opener()
+        self.args = {'debug': True,
+                     'timeout': 10}
+
+
+@Scraper.register
+class DefaultCookieScraper(Scraper):
+    def __init__(self, spider):
+        super(DefaultCookieScraper, self).__init__()
+        self._spider = spider
+        self.logger = spider.logger
+        self.name = spider.name + '-Scraper'
+        self.args = {'debug': True,
+                     'timeout': 10,
+                     'getCookie': None}
+        self.opener = None
+
+    def _check_opener(self):
+        if self.opener:
+            return
+        getCookie = self.args['getCookie']
+        if not getCookie or not callable(getCookie):
+            raise ScraperException('Must set getCookie function before running DefaultCookieScraper')
+        cookie = getCookie()
+        if not issubclass(cookie.__class__, CookieJar):
+            raise ScraperException('getCookie function must return an instance of subclass of cookielib.CookieJar')
+        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie))
+
+    def fetch(self, urllist):
+        self._check_opener()
+        return super(DefaultCookieScraper, self).fetch(urllist)

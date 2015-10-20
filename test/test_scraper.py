@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 __author__ = 'mengpeng'
 from unittest import TestCase
+from cookielib import CookieJar
 from pycrawler.scraper import Scraper
 from pycrawler.scraper import DefaultScraper
+from pycrawler.scraper import DefaultCookieScraper
 from pycrawler.scraper import encodeurl
 from pycrawler.scraper import parseurl
 from pycrawler.exception import ScraperException
@@ -55,3 +57,28 @@ class SpiderTest:
     def addtask(self, task):
         print('{0} got url(s):'.format(self.name))
         print(task)
+
+
+class TestDefaultCookieScraper(TestCase):
+    def test__check_opener(self):
+        sp = SpiderTest('testspider')
+        scraper = DefaultCookieScraper(sp)
+        self.assertRaises(ScraperException, scraper._check_opener)
+        scraper.setargs({'getCookie': 1})
+        self.assertRaises(ScraperException, scraper._check_opener)
+        scraper.setargs({'getCookie': lambda: 1})
+        self.assertRaises(ScraperException, scraper._check_opener)
+        scraper.setargs({'getCookie': lambda: CookieJar()})
+        scraper._check_opener()
+        self.assertIsNotNone(scraper.opener)
+
+    def test_fetch(self):
+        sp = SpiderTest('testspider')
+        s = DefaultCookieScraper(sp)
+        s.setargs({'getCookie': lambda: CookieJar()})
+        results = s.fetch(['http://www.renren.com',
+                           'http://www.baidu.com',
+                           'http://www.zhihu.com'])
+        self.assertEqual(3, len(results))
+        for value in results.itervalues():
+            self.assertNotEqual(0, len(value))
