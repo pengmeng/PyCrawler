@@ -3,7 +3,6 @@ __author__ = 'mengpeng'
 from threading import Thread
 
 from mongojuice.document import Document
-
 import os
 from pycrawler.exception import PyCrawlerException
 from pycrawler.scraper import Scraper
@@ -17,6 +16,7 @@ class Spider(Thread):
     def __init__(self, config, debug=True):
         super(Spider, self).__init__()
         self.name = ''
+        self.speed = 100
         self.config = config
         self.scraper = None
         self.frontier = None
@@ -30,6 +30,7 @@ class Spider(Thread):
     def _build(self, config):
         try:
             self.name = config['name']
+            self.speed = config.get('speed', self.speed)
             Logger.register(self.name)
             Logger.load()
             self.logger = Logger(self.name)
@@ -59,7 +60,7 @@ class Spider(Thread):
     def run(self):
         self.logger.warning(self.name, 'Start crawling...')
         while self.frontier.hasnext() and self.keep:
-            urls = self.frontier.next(100)
+            urls = self.frontier.next(self.speed)
             results = self.scraper.fetch(urls)
             for url, body in results.iteritems():
                 for handler in self.handlers:

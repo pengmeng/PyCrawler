@@ -1,19 +1,26 @@
 # -*- coding: utf-8 -*-
+# This file will be replace with redisugar project
+# Current code only here to make the whole project run
 __author__ = 'mengpeng'
 import redis
-from pycrawler.exception import PyCrawlerException
+
+
+class RediSugarException(Exception):
+    pass
 
 
 class RediSugar(object):
-    Pool = None
+    _Pool = None
 
     @staticmethod
-    def getConnection():
-        if not RediSugar.Pool:
-            RediSugar.Pool = redis.ConnectionPool(host='localhost', port=6379, db=0)
-        r = redis.Redis(connection_pool=RediSugar.Pool)
+    def getSugar(host='localhost', port=6379, db=0):
+        if not RediSugar._Pool:
+            RediSugar._Pool = redis.ConnectionPool(host=host, port=port, db=db)
+        r = redis.Redis(connection_pool=RediSugar._Pool)
         try:
-            r.ping()
-            return r
+            return r.ping() and RediSugar(r)
         except redis.ConnectionError:
-            raise PyCrawlerException('Connect to redis server failed')
+            raise RediSugarException('Connect to redis server failed')
+
+    def __init__(self, _redis):
+        self.redis = _redis

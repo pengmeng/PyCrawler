@@ -66,7 +66,7 @@ class BFSFrontier(Frontier):
         self._spider = spider
         self.args = {'rules': [],
                      'order': 'bfs'}
-        self.redis = RediSugar.getConnection()
+        self.redis = RediSugar.getSugar().redis
         self.filter = ScalableBloomFilter(mode=ScalableBloomFilter.SMALL_SET_GROWTH)
         self.todo = spider.name + '-todo'
         self.visited = spider.name + '-visited'
