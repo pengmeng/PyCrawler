@@ -10,7 +10,7 @@ class Handler(object):
     Dict = {}
 
     def __init__(self):
-        pass
+        self.args = None
 
     @staticmethod
     def register(cls):
@@ -28,7 +28,10 @@ class Handler(object):
             raise HandlerException('No Handler class named '+name)
 
     def setargs(self, args):
-        raise NotImplementedError
+        if not isinstance(args, dict):
+            raise HandlerException('Args must be a dict')
+        for key, value in args.iteritems():
+            self.args[key] = value
 
     def parse(self, *args):
         raise NotImplementedError

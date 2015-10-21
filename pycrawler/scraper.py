@@ -71,20 +71,20 @@ class Scraper(object):
     def fetchone(self, oriurl):
         url, data = parseurl(oriurl)
         data = urllib.urlencode(data) if data else data
+        res_url, html = None, None
         try:
             res = self.opener.open(url, data, self.args['timeout'])
         except socket.timeout as ex:
             self.logger.error(self.name, ex.message + ': ' + oriurl)
-            html = None
         except (urllib2.HTTPError, IOError):
             self.logger.error(self.name, 'IOError: ' + oriurl)
-            html = None
         else:
             html = res.read()
+            res_url = res.url
             res.close()
         if self.args['debug']:
             self.logger.info(self._spider.name, 'Scraped: ' + url)
-        return oriurl, html
+        return res_url, html
 
     def fetch(self, urllist):
         results = {}
