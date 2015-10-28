@@ -4,6 +4,7 @@ from threading import Thread
 
 from mongojuice.document import Document
 import os
+import time
 from pycrawler.exception import PyCrawlerException
 from pycrawler.scraper import Scraper
 from pycrawler.frontier import Frontier
@@ -17,6 +18,7 @@ class Spider(Thread):
         super(Spider, self).__init__()
         self.name = ''
         self.speed = 100
+        self.delay = 0
         self.config = config
         self.scraper = None
         self.frontier = None
@@ -31,6 +33,7 @@ class Spider(Thread):
         try:
             self.name = config['name']
             self.speed = config.get('speed', self.speed)
+            self.delay = config.get('delay', self.delay)
             Logger.register(self.name)
             Logger.load()
             self.logger = Logger(self.name)
@@ -136,6 +139,8 @@ class Spider(Thread):
                 pass
             else:
                 self.logger.info(self.name, 'Resumed by driver')
+        if self.delay:
+            time.sleep(self.delay)
 
 
 class Driver(object):
