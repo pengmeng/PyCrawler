@@ -7,7 +7,6 @@ import math
 import urllib
 from unidecode import unidecode
 from pycrawler.handler import Handler
-from pycrawler.scraper import DefaultScraper
 from pycrawler.scraper import encodeurl
 from pycrawler.scraper import parseurl
 from pycrawler.utils.tools import gethash
