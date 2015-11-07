@@ -94,22 +94,24 @@ class BFSFrontier(Frontier):
     def visitednum(self):
         return self.redis.llen(self.visited)
 
-    def add(self, item):
+    def add(self, item, force=False):
         if isinstance(item, list):
             for each in iter(item):
-                self._addone(each)
+                self._addone(each, force)
         elif isinstance(item, str):
-            self._addone(item)
+            self._addone(item, force)
         else:
             raise FrontierException('Unsupported type: {0}'.format(type(item)))
 
-    def _addone(self, item):
-        if not self.isVisited(item) and self.validate(item):
+    def _addone(self, item, force=False):
+        if force:
+            self.redis.rpush(self.todo, item)
+        elif not self.isVisited(item) and self.validate(item):
             self.redis.rpush(self.todo, item)
 
     def next(self, num=1):
         if num == 1:
-            return self._nextone()
+            return [self._nextone()]
         elif num == 0 or num >= self.__len__():
             return self._nextall()
         elif num > 1:
@@ -124,13 +126,13 @@ class BFSFrontier(Frontier):
 
     def _nextone(self):
         item = self.redis.lpop(self.todo)
-        while item:
-            if item in self.filter:
-                item = self.redis.lpop(self.todo)
-            else:
-                self.filter.add(item)
-                self.redis.rpush(self.visited, item)
-                break
+        # while item:
+        #     if item in self.filter:
+        #         item = self.redis.lpop(self.todo)
+        #     else:
+        self.filter.add(item)
+        self.redis.rpush(self.visited, item)
+        #         break
         return item
 
     def _nextall(self):

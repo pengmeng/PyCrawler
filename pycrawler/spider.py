@@ -5,6 +5,7 @@ from threading import Thread
 from mongojuice.document import Document
 import os
 import time
+from random import randint
 from pycrawler.exception import PyCrawlerException
 from pycrawler.scraper import Scraper
 from pycrawler.frontier import Frontier
@@ -57,8 +58,8 @@ class Spider(Thread):
     def reload(self, config):
         self._build(config)
 
-    def addtask(self, task):
-        self.frontier.add(task)
+    def addtask(self, task, force=False):
+        self.frontier.add(task, force)
 
     def run(self):
         self.logger.warning(self.name, 'Start crawling...')
@@ -140,7 +141,7 @@ class Spider(Thread):
             else:
                 self.logger.info(self.name, 'Resumed by driver')
         if self.delay:
-            time.sleep(self.delay)
+            time.sleep(self.delay + randint(1, 5))
 
 
 class Driver(object):
@@ -178,10 +179,10 @@ class Driver(object):
     def getspiders(self):
         return self.spiders.itervalues()
 
-    def addtask(self, spidername, task):
+    def addtask(self, spidername, task, force=False):
         spider = self.getspider(spidername)
         if spider:
-            spider.addtask(task)
+            spider.addtask(task, force)
         else:
             raise PyCrawlerException('No spider named ' + spidername)
 

@@ -76,14 +76,18 @@ class Scraper(object):
             res = self.opener.open(url, data, self.args['timeout'])
         except socket.timeout as ex:
             self.logger.error(self.name, ex.message + ': ' + oriurl)
+            self._spider.addtask(oriurl, force=True)
+            self.logger.info(self.name, 'Url has been added back to todo list.')
         except (urllib2.HTTPError, IOError):
             self.logger.error(self.name, 'IOError: ' + oriurl)
+            self._spider.addtask(oriurl, force=True)
+            self.logger.info(self.name, 'Url has been added back to todo list.')
         else:
             html = res.read()
             res_url = res.url
             res.close()
-        if self.args['debug']:
-            self.logger.info(self._spider.name, 'Scraped: ' + url)
+            if self.args['debug']:
+                self.logger.info(self.name, 'Scraped: ' + url)
         return res_url, html
 
     def fetch(self, urllist):

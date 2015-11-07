@@ -8,13 +8,16 @@ import re
 
 from pycrawler.scraper import encodeurl
 from pycrawler.handler import Handler
-from pycrawler.utils.tools import gethash
+from pycrawler.utils.tools import md5
 from pycrawler.spider import Driver
 from mongojuice.document import Document
 
 
 MONTH_NUM = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
-             'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12}
+             'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+             'January': 1, 'February': 2, 'March': 3, 'April': 4, 'June': 6,
+             'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11,
+             'December': 12}
 
 
 class Article(Document):
@@ -27,11 +30,11 @@ class Article(Document):
                  'keyword': str}
     given = ['title', 'url', 'content', 'date', 'keyword']
     database = 'wsj_fulltext'
-    collection = 'fulltext'
+    collection = 'new_fulltext'
 
     def __init__(self, title, url, content, date, keyword):
         super(Article, self).__init__()
-        self._id = gethash(title + date + keyword)
+        self._id = md5(title + date + keyword)
         self.title = title
         self.url = url
         self.content = content
@@ -57,7 +60,8 @@ class Wsj_full_Handler(Handler):
         self.name = spider.name + '-Handler'
         self.args = {'debug': True,
                      'log': True,
-                     'logfile': 'Wsj_full_Handler.log'}
+                     'logfile': 'Wsj_full_Handler.log',
+                     'start': 0}
 
     def parse(self, html, url):
         url_parts = url.split('/')
@@ -70,17 +74,41 @@ class Wsj_full_Handler(Handler):
             self.logger.error(self.name, 'Unexpected url: ' + url)
 
     def _parse_search(self, html, url_parts):
-        if url_parts[5] == '1':
-            self._generate_all_pages(html, url_parts)
+        # if url_parts[5] == '1':
+        #     self._generate_all_pages(html, url_parts)
         base_url = 'http://search.proquest.com.turing.library.northwestern.edu'
         title_p = re.compile('class="previewTitle Topicsresult".*[0-9]{5}"')
         titles = title_p.findall(html)
         keyword = self._extract_keyword(url_parts)
         urls = []
-        for title in titles:
-            doc_url = title[title.index('href="') + 6: -1]
-            doc_url += '&' + keyword
-            urls.append(base_url + doc_url)
+        if 'start' in self.args and self.args['start'] == 0:
+            for title in titles:
+                doc_url = title[title.index('href="') + 6: -1]
+                doc_url += '&' + keyword
+                urls.append(base_url + doc_url)
+            if len(urls) == 0:
+                self.logger.error(self.name, 'No urls found in: ' + '/'.join(url_parts))
+                # self._spider.retire()
+            else:
+                self.logger.info(self.name, 'Found {0} urls'.format(len(urls)))
+        total_p = re.compile('[0-9,]+ Results')
+        total = total_p.findall(html)
+        if len(total) != 1:
+            self.logger.error(self.name, 'Unexpected total string in: ' + '/'.join(url_parts))
+        else:
+            total = total[0]
+            total_str = total.split(' ')[0]
+            if ',' in total_str:
+                total_str = total_str.replace(',', '')
+            total_num = int(total_str)
+            page_num = int(url_parts[5])
+            if 'start' in self.args and self.args['start'] != 0:
+                url_parts[5] = str(self.args['start'])
+                urls.append('/'.join(url_parts))
+                self.args['start'] = 0
+            elif page_num * 20 < total_num:
+                url_parts[5] = str(page_num + 1)
+                urls.append('/'.join(url_parts))
         self._spider.addtask(urls)
 
     def _generate_all_pages(self, html, url_parts):
@@ -110,6 +138,7 @@ class Wsj_full_Handler(Handler):
         title = title_p.findall(html)
         if len(title) != 1:
             self.logger.error(self.name, 'Unexpected title in: ' + url)
+            # self._spider.retire()
             return None
         title = title[0][16:-5]
         date = date_p.findall(html)
@@ -117,11 +146,17 @@ class Wsj_full_Handler(Handler):
             self.logger.error(self.name, 'Unexpected date in:' + url)
             return None
         date = date[0]
-        raw_text = html[html.index('<Text'): html.index('</Text>')]
+        try:
+            raw_text = html[html.index('<Text'): html.index('</Text>')]
+        except ValueError:
+            self.logger.warning(self.name, 'Text not availible in:' + url)
+            raw_text = 'Not availible'
+            return Article(title, url, raw_text, date, keyword)
         text = re.split('<.+>', raw_text)
         text = [each.strip() for each in text if each.strip() != '']
         content = '\n'.join(text)
         article = Article(title, url, content, date, keyword)
+        self.logger.info(self.name, 'Get article with id: ' + str(article._id))
         return article
 
     def _extract_keyword(self, url_parts):
@@ -176,19 +211,20 @@ def generate_seeds(keywords):
 
 DriverSettings = {'name': 'Wsj_Fulltext_Crawler',
                   'spiders': [
-                      {'name': 'FulltextSpider',
-                       'speed': 10,
-                       'delay': 5,
+                      {'name': 'NewFulltextSpider',
+                       'speed': 1,
+                       'delay': 30,
                        'scraper': {'name': 'DefaultCookieScraper',
                                    'args': {'getCookie': getCookie}},
                        'frontier': {'name': 'BFSFrontier'},
-                       'handlers': [{'name': 'Wsj_full_Handler'}]}]}
+                       'handlers': [{'name': 'Wsj_full_Handler',
+                           'args': {'start': 201}}]}]}
 
 
 def main():
     driver = Driver(DriverSettings)
     seeds = generate_seeds(['apple'])
-    driver.addtask('FulltextSpider', seeds)
+    driver.addtask('NewFulltextSpider', seeds, force=True)
     driver.start()
 
 
