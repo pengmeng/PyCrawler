@@ -52,6 +52,7 @@ class SpiderTest:
     def __init__(self, name):
         self.name = name
         self.logger = Logger('Default')
+        self.scraper = DefaultScraper(self)
 
     def addtask(self, task):
         print('{0} got url(s):'.format(self.name))
