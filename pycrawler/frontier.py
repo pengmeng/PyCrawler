@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import re
 from pybloom import ScalableBloomFilter
 from pycrawler.exception import FrontierException
 from pycrawler.utils.redisugar import RediSugar
@@ -10,7 +9,7 @@ class Frontier(object):
     Dict = {}
 
     def __init__(self):
-        pass
+        self.args = None
 
     @staticmethod
     def register(cls):
@@ -28,15 +27,12 @@ class Frontier(object):
             raise FrontierException('No Frontier class named '+name)
 
     def setargs(self, args):
-        raise NotImplementedError
+        if not isinstance(args, dict):
+            raise FrontierException('Args must be a dict')
+        for key, value in args.iteritems():
+            self.args[key] = value
 
     def __len__(self):
-        raise NotImplementedError
-
-    def __contains__(self, item):
-        raise NotImplementedError
-
-    def visitednum(self):
         raise NotImplementedError
 
     def add(self, item):
@@ -48,12 +44,6 @@ class Frontier(object):
     def hasnext(self):
         raise NotImplementedError
 
-    def isVisited(self, item):
-        raise NotImplementedError
-
-    def validate(self, item):
-        raise NotImplementedError
-
     def clean(self, *args):
         raise NotImplementedError
 
@@ -63,35 +53,26 @@ class BFSFrontier(Frontier):
     def __init__(self, spider):
         super(BFSFrontier, self).__init__()
         self._spider = spider
-        self.args = {'rules': [],
-                     'order': 'bfs'}
         self.redis = RediSugar.getSugar().redis
         self.filter = ScalableBloomFilter(mode=ScalableBloomFilter.SMALL_SET_GROWTH)
+        self.queue_set = {'todo', 'visited', 'failed'}
         self.todo = spider.name + '-todo'
+        self.force = spider.name + '-force'
         self.visited = spider.name + '-visited'
+        self.failed = spider.name + '-failed'
+        self.args = {'enable_filter': True}
         self._feedfilter()
 
-    def setargs(self, args):
-        if not isinstance(args, dict):
-            raise FrontierException('Args must be a dict')
-        for key, value in args.iteritems():
-            self.args[key] = value
-        if self.args['rules']:
-            for each in self.args['rules']:
-                try:
-                    re.compile(each)
-                except re.error:
-                    raise FrontierException('Wrong regular expression: \'{0}\''.format(each))
-
     def __len__(self):
-        return self.redis.llen(self.todo)
+        return self.redis.llen(self.todo) + self.redis.llen(self.force)
 
-    def __contains__(self, item):
-        temp = self.redis.lrange(self.todo, 0, self.__len__())
-        return item in temp
-
-    def visitednum(self):
-        return self.redis.llen(self.visited)
+    def count(self, queue_name):
+        if queue_name not in self.queue_set:
+            raise FrontierException('Only support queue names: ' + ' '.join(self.queue_set))
+        elif queue_name == 'todo':
+            return self.__len__()
+        else:
+            return self.redis.llen(self._spider.name + '-' + queue_name)
 
     def add(self, item, force=False):
         if isinstance(item, list):
@@ -102,10 +83,12 @@ class BFSFrontier(Frontier):
         else:
             raise FrontierException('Unsupported type: {0}'.format(type(item)))
 
-    def _addone(self, item, force=False):
-        if force:
+    def _addone(self, item, force):
+        if not self.args['enable_filter']:
             self.redis.rpush(self.todo, item)
-        elif not self.isVisited(item) and self.validate(item):
+        elif force:
+            self.redis.rpush(self.force, item)
+        elif item not in self.filter:
             self.redis.rpush(self.todo, item)
 
     def next(self, num=1):
@@ -117,28 +100,36 @@ class BFSFrontier(Frontier):
             result = []
             while len(result) < num:
                 item = self._nextone()
-                if item:
-                    result.append(item)
+                if not item:
+                    break
+                result.append(item)
             return result
         else:
             raise FrontierException('Num should be greater than 0')
 
     def _nextone(self):
-        item = self.redis.lpop(self.todo)
-        # while item:
-        #     if item in self.filter:
-        #         item = self.redis.lpop(self.todo)
-        #     else:
+        item = self.redis.lpop(self.force)
+        if item:
+            return item
+        else:
+            item = self.redis.lpop(self.todo)
+        while item and self.args['enable_filter']:
+            if item not in self.filter:
+                break
+            item = self.redis.lpop(self.todo)
         self.filter.add(item)
         self.redis.rpush(self.visited, item)
-        #         break
         return item
 
     def _nextall(self):
+        result = self.redis.lrange(self.force, 0, -1)
+        self.redis.ltrim(self.force, len(result), self.redis.llen(self.force))
         temp = self.redis.lrange(self.todo, 0, self.__len__())
-        result = [x for x in temp if x not in self.filter]
-        self.redis.ltrim(self.todo, len(temp), self.__len__())
-        for each in iter(result):
+        if self.args['enable_filter']:
+            temp = [x for x in temp if x not in self.filter]
+        result += temp
+        self.redis.ltrim(self.todo, len(temp), self.redis.llen(self.todo))
+        for each in iter(temp):
             self.filter.add(each)
             self.redis.rpush(self.visited, each)
         return result
@@ -146,26 +137,35 @@ class BFSFrontier(Frontier):
     def hasnext(self):
         return self.__len__() != 0
 
-    def isVisited(self, item):
-        return item in self.filter
-
-    def validate(self, item):
-        if self.args['rules']:
-            for each in self.args['rules']:
-                if not re.match(each, item):
-                    return False
-        return True
-
     def clean(self, *args):
         if 'visited' in args:
             self.redis.delete(self.visited)
         if 'todo' in args:
             self.redis.delete(self.todo)
+            self.redis.delete(self.force)
+        if 'failed' in args:
+            self.redis.delete(self.failed)
 
     def _feedfilter(self):
-        length = self.redis.llen(self.visited)
-        if length != 0:
-            map(self.filter.add, self.redis.lrange(self.visited, 0, length))
+        if self.redis.llen(self.visited):
+            for each in iter(self.redis.lrange(self.visited, 0, -1)):
+                self.filter.add(each)
+
+    def add_to_fail(self, item):
+        if isinstance(item, list):
+            for each in iter(item):
+                self.redis.rpush(self.failed, each)
+        elif isinstance(item, str):
+            self.redis.rpush(self.failed, item)
+        else:
+            raise FrontierException('Unsupported type: {0}'.format(type(item)))
+
+    def get_all_fail(self, item):
+        return self.redis.lrange(self.failed, 0, -1)
+
+    def recover_fail(self):
+        while self.redis.llen(self.failed) != 0:
+            self.redis.rpoplpush(self.failed, self.force)
 
     def save(self):
         try:

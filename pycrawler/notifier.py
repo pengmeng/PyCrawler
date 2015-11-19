@@ -8,7 +8,7 @@ class Notifier(object):
     Dict = {}
 
     def __init__(self):
-        pass
+        self.args = None
 
     @staticmethod
     def register(cls):
@@ -26,12 +26,16 @@ class Notifier(object):
             raise NotifierException('No notifier class named ' + name)
 
     def setargs(self, args):
-        raise NotImplementedError
+        if not isinstance(args, dict):
+            raise NotifierException('Args must be a dict')
+        for key, value in args.iteritems():
+            self.args[key] = value
 
     def notify(self, *args):
         raise NotImplementedError
 
 
+@Notifier.register
 class EmailNotifier(Notifier):
     def __init__(self, spider):
         super(EmailNotifier, self).__init__()
@@ -41,14 +45,8 @@ class EmailNotifier(Notifier):
         self.args = {'server': 'smtp.gmail.com',
                      'port': 587,
                      'protocol': 'smtp',
-                     'username': '',
+                     'username': 'pycrawler.notification@gmail.com',
                      'password': ''}
-
-    def setargs(self, args):
-        if not isinstance(args, dict):
-            raise NotifierException('Args must be a dict')
-        for key, value in args.iteritems():
-            self.args[key] = value
 
     def notify(self, receiver, subject, content):
         user = self.args['username']
@@ -57,7 +55,7 @@ class EmailNotifier(Notifier):
         port = self.args['port']
         FROM = user
         TO = receiver if isinstance(receiver, list) else [receiver]
-        message = '\nFrom: {0}\nTo: {1}\nSubject: {2}\n\n{3}'.format(FROM, ', '.join(TO), subject, content)
+        message = 'From: {0}\r\nTo: {1}\r\nSubject: {2}\r\n\r\n{3}'.format(FROM, ', '.join(TO), subject, content)
         try:
             server = smtplib.SMTP(server, port)
             server.ehlo()
