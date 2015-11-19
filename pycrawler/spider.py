@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__author__ = 'mengpeng'
 from threading import Thread
 
 from mongojuice.document import Document
@@ -11,7 +10,7 @@ from pycrawler.scraper import Scraper
 from pycrawler.frontier import Frontier
 from pycrawler.handler import Handler
 from pycrawler.logger import Logger
-from pycrawler.utils.tools import fullstamp
+from pycrawler.utils.toolbox import fullstamp
 
 
 class Spider(Thread):

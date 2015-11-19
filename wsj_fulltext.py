@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__author__ = 'mengpeng'
 import urllib
 import urllib2
 import cookielib
@@ -8,7 +7,7 @@ import re
 
 from pycrawler.scraper import encodeurl
 from pycrawler.handler import Handler
-from pycrawler.utils.tools import md5
+from pycrawler.utils.toolbox import md5
 from pycrawler.spider import Driver
 from mongojuice.document import Document
 
@@ -109,6 +108,10 @@ class Wsj_full_Handler(Handler):
             elif page_num * 20 < total_num:
                 url_parts[5] = str(page_num + 1)
                 urls.append('/'.join(url_parts))
+            else:
+                if 'years' in self.args and self.args['years']:
+                    year = self.args['years'].pop(0)
+                    urls += generate_seeds([keyword], year)
         self._spider.addtask(urls)
 
     def _generate_all_pages(self, html, url_parts):
@@ -189,7 +192,7 @@ def getCookie():
     return cookie
 
 
-def generate_seeds(keywords):
+def generate_seeds(keywords, year):
     baseurl = 'http://search.proquest.com.turing.library.northwestern.edu/index.expandedbasicsearchbox_0.searchform'
     formdata = {'t:ac': '5D5F265CA8DC461DPQ',
                 't:submit': '["expandedSearch",""]',
@@ -201,10 +204,10 @@ def generate_seeds(keywords):
                               'MFbThaVTQf4oWmn3ZEtS609CIxmCbY/Yp2kjBtwIvw/1XuIz3+3MTXB7YUJ7veuXH5/ah7sjf+q7yDX56/jx+IsMH+Vx'
                               '5+A3vji8/owjltQMAAA==',
                 'searchTerm': ''}
-    search_suffix = ' AND PUBID(105983)'
+    search = '{0} AND PUBID(105983) AND YR(<={1}) AND YR(>={1})'
     urls = []
     for keyword in keywords:
-        formdata['searchTerm'] = keyword + search_suffix
+        formdata['searchTerm'] = search.format(keyword, year)
         urls.append(encodeurl('POST', baseurl, formdata))
     return urls
 
@@ -218,12 +221,13 @@ DriverSettings = {'name': 'Wsj_Fulltext_Crawler',
                                    'args': {'getCookie': getCookie}},
                        'frontier': {'name': 'BFSFrontier'},
                        'handlers': [{'name': 'Wsj_full_Handler',
-                           'args': {'start': 201}}]}]}
+                                     'args': {'start': 0,
+                                              'years': [2011, 2012, 2013, 2014, 2015]}}]}]}
 
 
 def main():
     driver = Driver(DriverSettings)
-    seeds = generate_seeds(['apple'])
+    seeds = generate_seeds(['apple'], 2010)
     driver.addtask('NewFulltextSpider', seeds, force=True)
     driver.start()
 

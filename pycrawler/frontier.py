@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__author__ = 'mengpeng'
 import re
 from pybloom import ScalableBloomFilter
 from pycrawler.exception import FrontierException

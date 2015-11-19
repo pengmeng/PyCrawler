@@ -1,5 +1,8 @@
 #Python --PyCharm
 
+# temp ignore file
+wiki_crawler.py
+
 #MAC system files
 .DS_Store
 venv/

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__author__ = 'mengpeng'
 from unittest import TestCase
 from pycrawler.frontier import Frontier
 from pycrawler.exception import FrontierException

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # This file will be replace with redisugar project
 # Current code only here to make the whole project run
-__author__ = 'mengpeng'
 import redis
 
 

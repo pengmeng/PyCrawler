@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-__author__ = 'mengpeng'
 import logging
 import logging.config
 
 import os
-from pycrawler.utils.tools import datestamp
+from pycrawler.utils.toolbox import datestamp
 
 LoggingConfig = {
     'version': 1,

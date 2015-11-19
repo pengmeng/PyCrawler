@@ -46,6 +46,7 @@ class Scraper(object):
         self.name = None
         self.args = None
         self._spider = None
+        self.error_handler = None
 
     @staticmethod
     def register(cls):
@@ -62,11 +63,17 @@ class Scraper(object):
         else:
             raise ScraperException('No scraper class named ' + name)
 
+    @staticmethod
+    def _error_handler(spider, error_message, url):
+        spider.logger.warning(spider.scraper.name, error_message + ': ' + url)
+
     def setargs(self, args):
         if not isinstance(args, dict):
             raise ScraperException('Args must be a dict')
         for key, value in args.iteritems():
             self.args[key] = value
+        if 'error_handler' in self.args:
+            self.error_handler = self.args['error_handler']
 
     def fetchone(self, oriurl):
         url, data = parseurl(oriurl)
@@ -74,14 +81,9 @@ class Scraper(object):
         res_url, html = None, None
         try:
             res = self.opener.open(url, data, self.args['timeout'])
-        except socket.timeout as ex:
-            self.logger.error(self.name, ex.message + ': ' + oriurl)
-            self._spider.addtask(oriurl, force=True)
-            self.logger.info(self.name, 'Url has been added back to todo list.')
-        except (urllib2.HTTPError, IOError):
-            self.logger.error(self.name, 'IOError: ' + oriurl)
-            self._spider.addtask(oriurl, force=True)
-            self.logger.info(self.name, 'Url has been added back to todo list.')
+        except (urllib2.HTTPError, IOError, socket.timeout) as ex:
+            message = ex.message if isinstance(ex, socket.timeout) else 'IOError'
+            self.error_handler(self._spider, message, oriurl)
         else:
             html = res.read()
             res_url = res.url
@@ -109,6 +111,7 @@ class DefaultScraper(Scraper):
         self.opener = urllib2.build_opener()
         self.args = {'debug': True,
                      'timeout': 10}
+        self.error_handler = Scraper._error_handler
 
 
 @Scraper.register
@@ -122,6 +125,7 @@ class DefaultCookieScraper(Scraper):
                      'timeout': 10,
                      'getCookie': None}
         self.opener = None
+        self.error_handler = Scraper._error_handler
 
     def _check_opener(self):
         if self.opener:

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__author__ = 'mengpeng'
 import time
 from unittest import TestCase
 from settings import SPIDER

@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import os
 from bs4 import BeautifulSoup
 from pycrawler.exception import HandlerException
-from pycrawler.utils.tools import gethash
+from pycrawler.utils.toolbox import gethash
 
 
 class Handler(object):

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__author__ = 'mengpeng'
 
 # Example settings for building a single spider
 # If don't use 'args', default args will be used.

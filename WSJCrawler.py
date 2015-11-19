@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__author__ = 'mengpeng'
 import sys
 import re
 import time
@@ -9,7 +8,7 @@ from unidecode import unidecode
 from pycrawler.handler import Handler
 from pycrawler.scraper import encodeurl
 from pycrawler.scraper import parseurl
-from pycrawler.utils.tools import gethash
+from pycrawler.utils.toolbox import gethash
 from pycrawler.spider import Driver
 from pycrawler.monitor import Monitor
 from mongojuice.document import Document

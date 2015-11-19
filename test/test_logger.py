@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__author__ = 'mengpeng'
 import logging
 from unittest import TestCase
 from pycrawler.logger import Logger

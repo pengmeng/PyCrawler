@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__author__ = 'mengpeng'
 import unittest
 from unittest import TestCase
 from test.test_scraper import SpiderTest
